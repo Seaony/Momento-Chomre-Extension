@@ -13,7 +13,7 @@ Chrome Manifest V3 extension for saving web images into Momento.
 
 Right-click an image in Chrome and choose **Save Image to Momento**.
 
-The extension posts the image URL to Momento's local import endpoint:
+The extension posts the image URL and source page URL to Momento's local import endpoint:
 
 `http://127.0.0.1:47641/api/v1/import/image`
 

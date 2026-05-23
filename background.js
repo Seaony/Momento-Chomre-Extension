@@ -9,10 +9,12 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.contextMenus.onClicked.addListener(async (info) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== MENU_ID || !info.srcUrl) {
     return;
   }
+
+  const pageUrl = info.pageUrl || tab?.url || null;
 
   try {
     const response = await fetch(MOMENTO_IMPORT_ENDPOINT, {
@@ -22,7 +24,7 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
       },
       body: JSON.stringify({
         url: info.srcUrl,
-        pageUrl: info.pageUrl || null
+        pageUrl
       })
     });
 
