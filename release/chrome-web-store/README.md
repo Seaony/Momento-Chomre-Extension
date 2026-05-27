@@ -1,37 +1,33 @@
-# Momento Image Saver Chrome Web Store Review Kit
+# Momento Image Saver Chrome Web Store 审核材料
 
-This folder contains the materials needed to prepare a Chrome Web Store
-submission for Momento Image Saver.
+这个目录保存 Momento Image Saver 提交 Chrome Web Store 审核时需要用到的材料。
 
-## Files
+## 文件
 
-- `submission-copy.md`: copy-ready store listing text, privacy practices,
-  privacy policy draft, reviewer notes, screenshot checklist, and promotional
-  image checklist.
-- `release-checklist.md`: package contents, review risks, manual QA, release
-  steps, rollback notes, and known limitations.
+- `submission-copy.md`：可直接复制的商店详情文案、隐私实践说明、隐私政策草稿、审核员说明、截图清单和宣传图清单。
+- `release-checklist.md`：打包内容、审核风险、手动 QA、发布步骤、回滚说明和已知限制。
 
-## Package
+## 打包
 
-Generate the extension ZIP from the repository root:
+在仓库根目录生成扩展 zip：
 
 ```sh
 scripts/package-extension.sh
 ```
 
-The output is:
+输出文件是：
 
 ```text
 dist/momento-image-saver-<manifest.version>.zip
 ```
 
-Inspect the ZIP before uploading:
+上传前检查 zip 内容：
 
 ```sh
 unzip -l dist/momento-image-saver-<manifest.version>.zip
 ```
 
-The ZIP should include only:
+zip 里应该只包含：
 
 - `manifest.json`
 - `background.js`
@@ -39,18 +35,18 @@ The ZIP should include only:
 - `xiaohongshu-content.js`
 - `icons/`
 
-## Before Submission
+## 提交前
 
-Replace placeholders in `submission-copy.md`:
+先替换 `submission-copy.md` 里的占位符：
 
 - `https://<your-domain>/momento-image-saver`
 - `https://<your-domain>/momento-image-saver/support`
 - `<support-email-or-support-url>`
 
-Create required Chrome Web Store assets:
+准备 Chrome Web Store 必需素材：
 
-- At least one screenshot.
-- Small promotional image, 440 x 280.
-- Public privacy policy URL using the draft in `submission-copy.md`.
+- 至少一张截图。
+- 440 x 280 的 small promotional image。
+- 一个公开的隐私政策 URL，可以基于 `submission-copy.md` 里的隐私政策草稿创建。
 
-Reload and test the packaged extension before uploading.
+上传前重新加载并测试打包后的扩展。
