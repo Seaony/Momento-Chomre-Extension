@@ -36,3 +36,28 @@ Momento downloads the image and imports it into the currently open library witho
 - Only `http://` and `https://` image URLs are supported.
 - Images that require Chrome-only cookies or page session state may fail to download in Momento.
 - `blob:` and `data:` images are not supported by this lightweight bridge.
+
+## Privacy
+
+Momento Image Saver does not collect, sell, or upload user data to a third-party
+server. When the user chooses a save action, the extension sends the selected
+image URL and the source page URL to the local Momento app at
+`http://127.0.0.1:47641/api/v1/import/image`. Momento downloads the image on
+the user's Mac and imports it into the currently open local library.
+
+The extension does not use analytics, ads, tracking cookies, or remote code. It
+does not store browsing history or image history in Chrome storage.
+
+## Chrome Web Store package
+
+Run the packaging script from the repository root:
+
+```sh
+scripts/package-extension.sh
+```
+
+The script validates the manifest and icon paths, then writes a review-ready zip
+to `dist/momento-image-saver-<version>.zip`. The package includes only the
+extension runtime files and excludes tests, Git metadata, and release notes.
+
+Chrome Web Store review materials are kept in `release/chrome-web-store/`.

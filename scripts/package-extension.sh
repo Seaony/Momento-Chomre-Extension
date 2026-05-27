@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUTPUT_DIR="${1:-"$ROOT_DIR/dist"}"
+
+cd "$ROOT_DIR"
+
+VERSION="$(node -e 'const fs = require("fs"); const manifest = JSON.parse(fs.readFileSync("manifest.json", "utf8")); process.stdout.write(manifest.version);')"
+PACKAGE_NAME="momento-image-saver-${VERSION}.zip"
+
+node - <<'NODE'
+const fs = require("fs");
+const manifest = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
+const requiredFiles = [
+  "manifest.json",
+  "background.js",
+  "instagram-content.js",
+  "xiaohongshu-content.js",
+  ...Object.values(manifest.icons || {})
+];
+
+for (const file of requiredFiles) {
+  if (!fs.existsSync(file)) {
+    throw new Error(`Missing package file: ${file}`);
+  }
+}
+NODE
+
+rm -rf "$OUTPUT_DIR"
+mkdir -p "$OUTPUT_DIR"
+
+zip -qr "$OUTPUT_DIR/$PACKAGE_NAME" \
+  manifest.json \
+  background.js \
+  instagram-content.js \
+  xiaohongshu-content.js \
+  icons
+
+echo "$OUTPUT_DIR/$PACKAGE_NAME"
