@@ -5,10 +5,34 @@
   "version": "0.1.0",
   "minimum_chrome_version": "88",
   "permissions": [
+    "activeTab",
+    "scripting",
     "contextMenus"
   ],
   "host_permissions": [
     "http://127.0.0.1:47641/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://instagram.com/*",
+        "https://www.instagram.com/*"
+      ],
+      "js": [
+        "instagram-content.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://xiaohongshu.com/explore/*",
+        "https://www.xiaohongshu.com/explore/*"
+      ],
+      "js": [
+        "xiaohongshu-content.js"
+      ],
+      "run_at": "document_start"
+    }
   ],
   "background": {
     "service_worker": "background.js"
