@@ -1490,6 +1490,21 @@ function testXiaohongshuContentScriptDoesNotOverrideNativeContextMenu() {
   assert.strictEqual(fakeDocument.body.children.length, 0);
 }
 
+function testPrepareReleaseScriptPublishesGitHubRelease() {
+  const scriptPath = path.join(rootDir, "scripts", "prepare-release.sh");
+  const script = fs.readFileSync(scriptPath, "utf8");
+
+  assert.ok(script.includes("Usage:"));
+  assert.ok(script.includes("scripts/prepare-release.sh <version>"));
+  assert.ok(script.includes("MOMENTO_CHROME_RELEASE_REPOSITORY"));
+  assert.ok(script.includes("MOMENTO_CHROME_RELEASE_TAG"));
+  assert.ok(script.includes("scripts/package-extension.sh"));
+  assert.ok(script.includes("gh release create"));
+  assert.ok(script.includes("git tag"));
+  assert.ok(script.includes("git push origin"));
+  assert.ok(script.includes("Momento-Image-Saver-Manual-Install"));
+}
+
 function toPlainJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -1594,6 +1609,7 @@ async function run() {
   testXiaohongshuContentScriptShowsImportStatusToast();
   testXiaohongshuContentScriptShowsOriginalAndFallbackToast();
   testXiaohongshuContentScriptDoesNotOverrideNativeContextMenu();
+  testPrepareReleaseScriptPublishesGitHubRelease();
   console.log("All tests passed");
 }
 

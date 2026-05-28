@@ -61,3 +61,36 @@ dist/momento-image-saver-<version>.zip
 这个包只包含扩展运行文件，不包含测试、Git 元数据和发布说明。
 
 Chrome Web Store 审核材料放在 `release/chrome-web-store/`。
+
+## GitHub Release 一键发布
+
+发布前需要安装并登录 GitHub CLI：
+
+```sh
+gh auth login
+```
+
+然后在仓库根目录运行：
+
+```sh
+scripts/prepare-release.sh 0.1.1
+```
+
+脚本会完成：
+
+- 校验当前工作区必须是干净状态。
+- 更新 `manifest.json` 里的版本号。
+- 运行测试、JS 语法检查、manifest JSON 解析和 `git diff --check`。
+- 生成 Chrome Web Store zip：`dist/momento-image-saver-<version>.zip`。
+- 生成给用户手动安装的 zip：`dist/Momento-Image-Saver-Manual-Install-<version>.zip`。
+- 提交 `manifest.json` 版本变更。
+- 创建并推送 tag，默认格式是 `v<version>`。
+- 创建 GitHub Release，并上传两个 zip。
+
+如果需要指定 release 仓库或 tag，可以使用环境变量：
+
+```sh
+MOMENTO_CHROME_RELEASE_REPOSITORY=Seaony/Momento-Chomre-Extension \
+MOMENTO_CHROME_RELEASE_TAG=v0.1.1 \
+scripts/prepare-release.sh 0.1.1
+```
