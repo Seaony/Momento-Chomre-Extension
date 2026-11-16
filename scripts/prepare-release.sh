@@ -111,8 +111,9 @@ MANIFEST_VERSION="$(node -e 'const fs = require("fs"); const manifest = JSON.par
 step "Running validation"
 node test/run-tests.js
 node --check background.js
-node --check instagram-content.js
-node --check xiaohongshu-content.js
+for script in src/*.js; do
+  node --check "$script"
+done
 node --check test/run-tests.js
 node -e 'const fs = require("fs"); JSON.parse(fs.readFileSync("manifest.json", "utf8"));'
 git --no-pager diff --check

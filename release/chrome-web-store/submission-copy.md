@@ -28,7 +28,7 @@ Momento Image Saver 是配合本机 Momento 使用的 Chrome 扩展。它在 Chr
 
 - 用户必须先在本机启动 Momento。
 - 扩展只在用户主动点击右键菜单保存时工作。
-- 扩展会把图片 URL 和来源页面 URL 发送到本机接口 `http://127.0.0.1:47641/api/v1/import/image`。
+- 扩展会把图片 URL 和来源页面 URL 发送到本机接口 `http://127.0.0.1:47641/api/v1/`。
 - Momento 在用户本机下载图片并导入本地图库。
 - 扩展不会把图片、图片 URL、来源页面 URL 或浏览数据上传到第三方服务器。
 - 扩展不包含广告、分析 SDK、远程代码或追踪功能。
@@ -97,7 +97,7 @@ Momento Image Saver 的单一用途是：让用户通过 Chrome 右键菜单，�
 
 用于把用户选择的图片 URL 和来源页面 URL 发送给本机 Momento 的本地导入接口：
 
-`http://127.0.0.1:47641/api/v1/import/image`
+`http://127.0.0.1:47641/api/v1/`
 
 `127.0.0.1` 是本机 loopback 地址，请求只发送到同一台电脑上的 Momento。扩展不会把这些数据发送到 Momento 之外的服务器或第三方服务。
 
@@ -126,7 +126,7 @@ Momento Image Saver 的单一用途是：让用户通过 Chrome 右键菜单，�
 
 #### Data transmission
 
-- 只在用户主动选择保存操作时，把图片 URL 和来源页面 URL 发送到 `http://127.0.0.1:47641/api/v1/import/image`。
+- 只在用户主动选择保存操作时，把图片 URL 和来源页面 URL 发送到 `http://127.0.0.1:47641/api/v1/`。
 - 该地址是用户本机 Momento 的本地接口，不是第三方服务器。
 - 扩展不会把数据上传到云端、开发者服务器、广告网络、分析平台或数据代理。
 
@@ -153,7 +153,7 @@ Momento Image Saver is a Chrome extension for saving web images into the Momento
 
 When you choose a Momento save action from Chrome's right-click menu, the extension sends the selected image URL and the source page URL to the local Momento import endpoint:
 
-`http://127.0.0.1:47641/api/v1/import/image`
+`http://127.0.0.1:47641/api/v1/`
 
 Momento then downloads the image on your computer and imports it into your local Momento library.
 
@@ -197,7 +197,7 @@ Momento Image Saver is a Manifest V3 extension with one purpose: save user-selec
 
 The extension uses the local endpoint below:
 
-`http://127.0.0.1:47641/api/v1/import/image`
+`http://127.0.0.1:47641/api/v1/`
 
 This endpoint is served by the local Momento app. It is a loopback-only integration. The extension does not send the image URL or source page URL to any remote server.
 

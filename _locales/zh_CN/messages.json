@@ -1,0 +1,131 @@
+{
+  "extName": {
+    "message": "Momento Image Saver"
+  },
+  "extDescription": {
+    "message": "右键把网页上的图片和视频存进本机的 Momento。"
+  },
+  "actionTitle": {
+    "message": "批量保存本页图片"
+  },
+  "menuSave": {
+    "message": "保存到 Momento"
+  },
+  "menuSavePost": {
+    "message": "保存这一帖全部"
+  },
+  "menuSavePage": {
+    "message": "批量保存本页图片…"
+  },
+  "saving": {
+    "message": "正在保存…"
+  },
+  "savingCount": {
+    "message": "正在保存 $1/$2…"
+  },
+  "savedOne": {
+    "message": "已存进 Momento"
+  },
+  "savedMany": {
+    "message": "$1 项已存进 Momento"
+  },
+  "savedPartial": {
+    "message": "已保存 $1 项，$2 项失败：$3"
+  },
+  "failedMany": {
+    "message": "$1 项都没存上：$2"
+  },
+  "canceled": {
+    "message": "已取消保存"
+  },
+  "errNotRunning": {
+    "message": "没连上 Momento，打开 Momento 后再试"
+  },
+  "errNoLibrary": {
+    "message": "Momento 还没打开图库"
+  },
+  "errRefused": {
+    "message": "网站拒绝了下载"
+  },
+  "errDownload": {
+    "message": "下载失败，检查网络后再试"
+  },
+  "errUnsupported": {
+    "message": "Momento 不支持这种格式"
+  },
+  "errTooLarge": {
+    "message": "文件太大"
+  },
+  "errBusy": {
+    "message": "Momento 正忙，稍后再试"
+  },
+  "errNotReady": {
+    "message": "Momento 还在启动，稍后再试"
+  },
+  "errStream": {
+    "message": "这个网站的视频是分片播放的，暂时存不了"
+  },
+  "errNothing": {
+    "message": "这里没找到图片或视频"
+  },
+  "errPage": {
+    "message": "读不了这个页面。如果刚装好扩展，刷新页面后再试"
+  },
+  "errUpdate": {
+    "message": "把 Momento 更新到最新版才能存这类文件"
+  },
+  "errTimeout": {
+    "message": "Momento 很久没有回应"
+  },
+  "errGeneric": {
+    "message": "没存上：$1"
+  },
+  "panelTitle": {
+    "message": "保存本页图片"
+  },
+  "panelClose": {
+    "message": "关闭"
+  },
+  "panelCancel": {
+    "message": "取消"
+  },
+  "panelInvert": {
+    "message": "反选"
+  },
+  "panelAnySize": {
+    "message": "所有尺寸"
+  },
+  "panelMinSize": {
+    "message": "至少 $1 像素"
+  },
+  "panelVideo": {
+    "message": "视频"
+  },
+  "panelEmpty": {
+    "message": "这个页面上没找到能存的图片"
+  },
+  "panelEmptyFiltered": {
+    "message": "没有符合筛选的图片"
+  },
+  "panelFound": {
+    "message": "$1 项"
+  },
+  "panelSelected": {
+    "message": "已选 $1 项"
+  },
+  "panelSelectAll": {
+    "message": "全选"
+  },
+  "panelSelectNone": {
+    "message": "全不选"
+  },
+  "panelSave": {
+    "message": "保存"
+  },
+  "panelSaveCount": {
+    "message": "保存 $1 项"
+  },
+  "skippedStreams": {
+    "message": "$1 个分片播放的视频没存上"
+  }
+}

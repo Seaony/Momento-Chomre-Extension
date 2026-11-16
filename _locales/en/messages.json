@@ -1,0 +1,131 @@
+{
+  "extName": {
+    "message": "Momento Image Saver"
+  },
+  "extDescription": {
+    "message": "Save images and videos from web pages to Momento on your computer."
+  },
+  "actionTitle": {
+    "message": "Save images on this page"
+  },
+  "menuSave": {
+    "message": "Save to Momento"
+  },
+  "menuSavePost": {
+    "message": "Save Entire Post to Momento"
+  },
+  "menuSavePage": {
+    "message": "Save Images on This Page…"
+  },
+  "saving": {
+    "message": "Saving…"
+  },
+  "savingCount": {
+    "message": "Saving $1 of $2…"
+  },
+  "savedOne": {
+    "message": "Saved to Momento"
+  },
+  "savedMany": {
+    "message": "Saved $1 items to Momento"
+  },
+  "savedPartial": {
+    "message": "Saved $1, $2 failed: $3"
+  },
+  "failedMany": {
+    "message": "None of the $1 items were saved: $2"
+  },
+  "canceled": {
+    "message": "Save canceled"
+  },
+  "errNotRunning": {
+    "message": "Can't reach Momento. Open Momento and try again."
+  },
+  "errNoLibrary": {
+    "message": "Open a library in Momento first."
+  },
+  "errRefused": {
+    "message": "The website refused the download."
+  },
+  "errDownload": {
+    "message": "Download failed. Check your connection and try again."
+  },
+  "errUnsupported": {
+    "message": "Momento doesn't support this format."
+  },
+  "errTooLarge": {
+    "message": "The file is too large."
+  },
+  "errBusy": {
+    "message": "Momento is busy. Try again in a moment."
+  },
+  "errNotReady": {
+    "message": "Momento is still starting. Try again in a moment."
+  },
+  "errStream": {
+    "message": "This site streams video in segments, which can't be saved yet."
+  },
+  "errNothing": {
+    "message": "No image or video found here."
+  },
+  "errPage": {
+    "message": "Can't read this page. If you just installed the extension, reload the page and try again."
+  },
+  "errUpdate": {
+    "message": "Update Momento to save this kind of file."
+  },
+  "errTimeout": {
+    "message": "Momento didn't respond in time."
+  },
+  "errGeneric": {
+    "message": "Couldn't save: $1"
+  },
+  "panelTitle": {
+    "message": "Save Images"
+  },
+  "panelClose": {
+    "message": "Close"
+  },
+  "panelCancel": {
+    "message": "Cancel"
+  },
+  "panelInvert": {
+    "message": "Invert"
+  },
+  "panelAnySize": {
+    "message": "Any size"
+  },
+  "panelMinSize": {
+    "message": "At least $1 px"
+  },
+  "panelVideo": {
+    "message": "Video"
+  },
+  "panelEmpty": {
+    "message": "No images found on this page."
+  },
+  "panelEmptyFiltered": {
+    "message": "No images match the filters."
+  },
+  "panelFound": {
+    "message": "$1 found"
+  },
+  "panelSelected": {
+    "message": "$1 selected"
+  },
+  "panelSelectAll": {
+    "message": "Select All"
+  },
+  "panelSelectNone": {
+    "message": "Deselect All"
+  },
+  "panelSave": {
+    "message": "Save"
+  },
+  "panelSaveCount": {
+    "message": "Save $1"
+  },
+  "skippedStreams": {
+    "message": "$1 streamed videos couldn't be saved"
+  }
+}

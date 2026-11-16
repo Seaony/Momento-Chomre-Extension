@@ -27,15 +27,21 @@
 Momento Image Saver 是 Chrome Manifest V3 扩展，用于把网页图片发送到本机 Momento：
 
 ```text
-http://127.0.0.1:47641/api/v1/import/image
+http://127.0.0.1:47641/api/v1/status        查版本和能力
+http://127.0.0.1:47641/api/v1/import        提交下载任务（返回任务号）
+http://127.0.0.1:47641/api/v1/import/file   上传文件（blob:、data:）
+http://127.0.0.1:47641/api/v1/import/{id}   查任务结果
+http://127.0.0.1:47641/api/v1/import/image  旧版 Momento 的同步接口，没有任务能力时才用
 ```
 
 主要文件：
 
 - `manifest.json`：权限、host permissions、content scripts、service worker。
-- `background.js`：context menu、页面消息协调、本机导入请求。
-- `instagram-content.js`：Instagram 右键坐标与图片定位。
-- `xiaohongshu-content.js`：小红书笔记图片提取。
+- `background.js`：右键菜单、工具栏按钮、调用 Momento 本机接口（任务、轮询、上传、旧版兼容）、提示。
+- `src/collect.js`：注入页面找图和视频。通用规则（srcset、页面数据里的原图、图床规则表、同结构整帖）为主，小红书、Instagram、Pixiv、微博四个平台单独适配。注入的函数必须自成一体。
+- `src/ui.js`：注入页面的保存提示和批量保存面板。
+- `src/context.js`：Instagram、小红书记下右键点到的元素。
+- `_locales/`：中英日文案，key 和占位符必须齐全。
 - `test/run-tests.js`：无依赖 Node 测试。
 - `scripts/package-extension.sh`：Chrome Web Store zip 打包。
 - `icons/`：manifest 引用的 PNG 图标。
@@ -47,7 +53,9 @@ http://127.0.0.1:47641/api/v1/import/image
 - 不使用远程代码、分析、广告、追踪 Cookie 或 Chrome storage 保存浏览历史/图片历史。
 - 只在用户主动选择保存动作时向本机 Momento 发送 URL。
 - 小红书图片提取优先使用页面数据或已渲染轮播里的真实 URL，不自行拼接另一种 CDN URL。
-- Instagram 逻辑要尊重现有“记录右键位置再找真实图片”的路径，不用自定义页面 overlay 取代原生右键菜单。
+- Instagram、小红书靠 `src/context.js` 记下的右键位置找真实图片，不用自定义页面 overlay 取代原生右键菜单。
+- 新网站优先补通用规则（图床规则表、页面数据升档），只有数据要调平台自己接口才拿得到时才写专用适配。
+- `manifest.json` 的 `key` 固定扩展 ID，Momento 只放行这个 ID，不能删改。
 - 打包时只包含扩展运行文件，不把测试、Git 元数据、发布说明塞进 zip。
 
 ## Build / Test Commands
@@ -65,7 +73,7 @@ scripts/package-extension.sh
 
 优先维护：
 
-- `test/run-tests.js` 中小红书图片提取、fallback、消息结构、导入 request 的测试。
+- `test/run-tests.js` 中图床规则、小红书当前笔记读取、保存流程（任务、上传、旧版兼容、错误提示）、文案齐全的测试。
 - `manifest.json` JSON 解析和图标路径有效性。
 - `scripts/package-extension.sh` 对打包文件完整性的校验。
 

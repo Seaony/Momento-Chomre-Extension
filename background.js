@@ -1,543 +1,350 @@
-const IMAGE_MENU_ID = "save-image-to-momento";
-const INSTAGRAM_PAGE_MENU_ID = "save-instagram-image-to-momento";
-const XIAOHONGSHU_NOTE_IMAGES_MENU_ID = "save-xiaohongshu-note-images-to-momento";
-const MOMENTO_IMPORT_ENDPOINT = "http://127.0.0.1:47641/api/v1/import/image";
-const XIAOHONGSHU_NOTE_URL_PATTERNS = [
-  "https://xiaohongshu.com/explore/*",
-  "https://www.xiaohongshu.com/explore/*"
+/* global momentoCollect, momentoReadXiaohongshuNote, momentoReadBlob, momentoToast, momentoPanel */
+importScripts("src/collect.js", "src/ui.js");
+
+const MOMENTO = "http://127.0.0.1:47641";
+const MENU_SAVE = "momento-save";
+const MENU_POST = "momento-save-post";
+const MENU_PAGE = "momento-save-page";
+// 能「保存这一帖全部」的帖子页。
+const POST_PATTERNS = [
+  "https://www.xiaohongshu.com/explore/*",
+  "https://www.xiaohongshu.com/discovery/item/*",
+  "https://www.xiaohongshu.com/user/profile/*/*",
+  "https://www.instagram.com/*",
+  "https://www.pixiv.net/*",
+  "https://weibo.com/*",
+  "https://x.com/*/status/*",
+  "https://twitter.com/*/status/*",
+  "https://*.pinterest.com/pin/*",
+  "https://www.behance.net/gallery/*",
+  "https://dribbble.com/shots/*",
+  "https://huaban.com/pins/*",
+  "https://www.zcool.com.cn/work/*"
 ];
+// 网页里读出来再上传的文件（blob:、data:）最大多少；再大扩展后台装不下。
+const MAX_PAGE_FILE = 200 * 1024 * 1024;
+const POLL_INTERVAL = 500;
+const POLL_LIMIT = 30 * 60 * 1000;
 
-function createContextMenus() {
+function t(key, ...substitutions) {
+  return chrome.i18n.getMessage(key, substitutions.map(String)) || key;
+}
+
+function createMenus() {
   chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: IMAGE_MENU_ID,
-      title: "Save Image to Momento",
-      contexts: ["image"]
-    });
-
-    chrome.contextMenus.create({
-      id: INSTAGRAM_PAGE_MENU_ID,
-      title: "Save Image to Momento",
-      contexts: ["page"],
-      documentUrlPatterns: [
-        "https://instagram.com/*",
-        "https://www.instagram.com/*"
-      ]
-    });
-
-    chrome.contextMenus.create({
-      id: XIAOHONGSHU_NOTE_IMAGES_MENU_ID,
-      title: "Save All Images to Momento",
-      contexts: ["page", "image"],
-      documentUrlPatterns: XIAOHONGSHU_NOTE_URL_PATTERNS
-    });
+    chrome.contextMenus.create({ id: MENU_SAVE, title: t("menuSave"), contexts: ["image", "video", "link", "page"] });
+    chrome.contextMenus.create({ id: MENU_POST, title: t("menuSavePost"), contexts: ["image", "video", "link", "page"], documentUrlPatterns: POST_PATTERNS });
+    chrome.contextMenus.create({ id: MENU_PAGE, title: t("menuSavePage"), contexts: ["page", "action"] });
   });
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  createContextMenus();
-});
+chrome.runtime.onInstalled.addListener(createMenus);
+chrome.runtime.onStartup.addListener(createMenus);
 
-chrome.runtime.onStartup.addListener(() => {
-  createContextMenus();
-});
-
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  console.info("Momento context menu clicked", {
-    menuItemId: info.menuItemId,
-    pageUrl: info.pageUrl || tab?.url || null,
-    tabId: tab?.id || null
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  handleMenu(info, tab).catch((error) => {
+    console.error("Momento: 保存失败", error);
+    showToast(tab?.id, t("errGeneric", error?.message || String(error)), "error");
   });
-
-  const importRequests = await importRequestsForMenuClick(info, tab);
-  console.info("Momento import requests prepared", {
-    menuItemId: info.menuItemId,
-    count: importRequests.length,
-    firstImageUrl: importRequests[0]?.url || null
-  });
-
-  if (importRequests.length === 0) {
-    return;
-  }
-
-  const feedbackState = {
-    shouldControlFeedback: importRequests.length > 1,
-    didRequestFeedback: false
-  };
-  let status = await importImages(importRequests, { feedbackState });
-  if (info.menuItemId === XIAOHONGSHU_NOTE_IMAGES_MENU_ID) {
-    status = await retryFailedXiaohongshuImportsWithFallback(info, tab, importRequests, status, feedbackState);
-  }
-  await reportImportStatusToTab(tab?.id, status);
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== "momento:import-images") {
+chrome.action.onClicked.addListener((tab) => {
+  openPanel(tab).catch((error) => console.error("Momento: 打不开批量保存面板", error));
+});
+
+// 批量保存面板选好后发回来的。只接受本扩展注入的脚本发来的消息。
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message?.type !== "momento:save-items" || sender.id !== chrome.runtime.id || !sender.tab?.id) {
     return false;
   }
-
-  const importRequests = importRequestsFromMessage(message);
-  importImages(importRequests).then((status) => {
-    sendResponse({ imported: status.imported });
+  const items = Array.isArray(message.items) ? message.items.filter((item) => typeof item?.url === "string") : [];
+  saveItems(sender.tab.id, sender.frameId ?? 0, items, { pageUrl: sender.url || sender.tab.url, title: "" }).catch((error) => {
+    console.error("Momento: 批量保存失败", error);
+    showToast(sender.tab.id, t("errGeneric", error?.message || String(error)), "error");
   });
-  return true;
+  return false;
 });
 
-async function importImage(importRequest) {
+async function handleMenu(info, tab) {
+  if (!tab?.id) {
+    return;
+  }
+  if (info.menuItemId === MENU_PAGE) {
+    await openPanel(tab);
+    return;
+  }
+  const frameId = info.frameId ?? 0;
+  const result = await collect(tab, frameId, {
+    srcUrl: info.srcUrl || null,
+    linkUrl: info.linkUrl || null,
+    mediaType: info.mediaType || null,
+    post: info.menuItemId === MENU_POST
+  }, info.frameUrl || info.pageUrl || tab.url);
+  if (result.error) {
+    showToast(tab.id, reason(result.error), "error");
+    return;
+  }
+  await saveItems(tab.id, frameId, result.items, { pageUrl: result.pageUrl || info.pageUrl || tab.url, title: "", skippedStreams: result.skippedStreams || 0 });
+}
+
+async function inject(tabId, frameId, func, args, world = "ISOLATED") {
+  const [first] = await chrome.scripting.executeScript({ target: { tabId, frameIds: [frameId] }, func, args, world });
+  return first?.result;
+}
+
+// 在点到的那个框架里找要保存的东西。注入不了（扩展商店、PDF、跨域框架）时，有图片地址就直接用。
+async function collect(tab, frameId, args, frameUrl) {
   try {
-    const body = {
-      url: importRequest.url,
-      pageUrl: importRequest.pageUrl
-    };
-    if (importRequest.playFeedback === false) {
-      body.playFeedback = false;
+    let state = null;
+    if (/^https:\/\/([^/]+\.)?xiaohongshu\.com\//.test(frameUrl || "")) {
+      state = await inject(tab.id, frameId, momentoReadXiaohongshuNote, [], "MAIN");
     }
-
-    const response = await fetch(MOMENTO_IMPORT_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => "");
-      const error = `HTTP ${response.status} ${response.statusText}${errorBody ? `: ${errorBody}` : ""}`;
-      console.warn("Momento import failed", {
-        url: importRequest.url,
-        error
-      });
-      return {
-        ok: false,
-        error
-      };
+    const result = await inject(tab.id, frameId, momentoCollect, [{ ...args, state }]);
+    if (result) {
+      return result;
     }
-
-    return { ok: true };
   } catch (error) {
-    console.warn("Momento is not reachable. Keep Momento open in the background before saving images.", error);
-    return {
-      ok: false,
-      error: error?.message || String(error)
-    };
+    console.warn("Momento: 无法读取页面，改用浏览器给的地址", error?.message || error);
   }
-}
-
-async function importImages(importRequests, options = {}) {
-  let imported = 0;
-  const failures = [];
-  const feedbackState = options.feedbackState || {
-    shouldControlFeedback: importRequests.length > 1,
-    didRequestFeedback: false
-  };
-  const sourceSummary = {
-    original: 0,
-    fallback: 0,
-    unknown: 0
-  };
-
-  for (const importRequest of importRequests) {
-    const result = await importImage(
-      feedbackState.shouldControlFeedback && feedbackState.didRequestFeedback
-        ? { ...importRequest, playFeedback: false }
-        : importRequest
-    );
-    if (result.ok) {
-      imported += 1;
-      if (feedbackState.shouldControlFeedback) {
-        feedbackState.didRequestFeedback = true;
-      }
-      const source = importRequest.source || "unknown";
-      if (sourceSummary[source] === undefined) {
-        sourceSummary.unknown += 1;
-      } else {
-        sourceSummary[source] += 1;
-      }
-    } else {
-      const failure = {
-        url: importRequest.url,
-        source: importRequest.source || "unknown",
-        error: result.error
-      };
-      if (importRequest.index !== undefined) {
-        failure.index = importRequest.index;
-      }
-      failures.push(failure);
+  const url = args.srcUrl || args.linkUrl;
+  if (url && /^https?:/i.test(url)) {
+    let referer = "";
+    try {
+      referer = `${new URL(frameUrl).origin}/`;
+    } catch {
+      referer = "";
     }
+    return { items: [{ url, kind: args.mediaType === "video" ? "video" : "image", referer, upload: false }], pageUrl: frameUrl };
   }
-
-  console.info("Momento image import batch finished", {
-    requested: importRequests.length,
-    imported,
-    sourceSummary,
-    failures
-  });
-
-  return {
-    requested: importRequests.length,
-    imported,
-    sourceSummary,
-    failures
-  };
+  return { items: [], error: url ? "nothing" : "page" };
 }
 
-async function importRequestsForMenuClick(info, tab) {
-  if (info.menuItemId === IMAGE_MENU_ID && info.srcUrl) {
-    return [
-      {
-        url: info.srcUrl,
-        pageUrl: info.pageUrl || tab?.url || null
-      }
-    ];
-  }
-
-  if (info.menuItemId === INSTAGRAM_PAGE_MENU_ID) {
-    return importRequestsFromInstagramContext(info, tab);
-  }
-
-  if (info.menuItemId === XIAOHONGSHU_NOTE_IMAGES_MENU_ID) {
-    return importRequestsFromXiaohongshuNote(info, tab);
-  }
-
-  return [];
-}
-
-async function importRequestsFromInstagramContext(info, tab) {
+async function openPanel(tab) {
   if (!tab?.id) {
-    return [];
+    return;
   }
-
-  const response = await sendMessageToTab(tab.id, {
-    type: "momento:get-context-image"
-  });
-
-  if (!response?.url) {
-    console.warn("Momento could not find an Instagram image at the context menu location.");
-    return [];
+  let result;
+  try {
+    result = await inject(tab.id, 0, momentoCollect, [{ page: true }]);
+  } catch (error) {
+    console.warn("Momento: 这个页面不能打开批量保存", error?.message || error);
+    showToast(tab.id, t("errPage"), "error");
+    return;
   }
-
-  return [
-    {
-      url: response.url,
-      pageUrl: response.pageUrl || info.pageUrl || tab.url || null
-    }
-  ];
-}
-
-async function importRequestsFromXiaohongshuNote(info, tab) {
-  if (!tab?.id) {
-    console.warn("Momento Xiaohongshu import skipped because the tab id is missing.", {
-      pageUrl: info.pageUrl || null
-    });
-    return [];
-  }
-
-  const initialStateImages = await extractXiaohongshuImagesFromTab(tab.id);
-  if (initialStateImages.length > 0) {
-    console.info("Momento extracted Xiaohongshu images from page initial state.", {
-      count: initialStateImages.length,
-      firstImageUrl: initialStateImages[0]
-    });
-    return initialStateImages.map((url, index) => ({
-      url,
-      pageUrl: info.pageUrl || tab.url || null,
-      source: "original",
-      index
-    }));
-  }
-
-  return importRequestsFromXiaohongshuPageImages(info, tab, false);
-}
-
-async function importRequestsFromXiaohongshuPageImages(info, tab, preferPageImage) {
-  let response = await sendMessageToTab(tab.id, {
-    type: "momento:get-xiaohongshu-note-images",
-    preferPageImage
-  });
-  if (!response) {
-    console.warn("Momento could not reach the Xiaohongshu content script. Injecting it now.", {
-      tabId: tab.id,
-      pageUrl: info.pageUrl || tab.url || null
-    });
-    const injected = await injectXiaohongshuContentScript(tab.id);
-    if (!injected) {
-      return [];
-    }
-
-    response = await sendMessageToTab(tab.id, {
-      type: "momento:get-xiaohongshu-note-images",
-      preferPageImage
-    });
-    if (!response) {
-      console.warn("Momento still could not reach the Xiaohongshu content script after injection.", {
-        tabId: tab.id,
-        pageUrl: info.pageUrl || tab.url || null
-      });
-      return [];
-    }
-  }
-
-  if (response.error) {
-    console.warn("Momento Xiaohongshu content script returned an error.", {
-      error: response.error,
-      tabId: tab.id,
-      pageUrl: info.pageUrl || tab.url || null
-    });
-  }
-
-  const images = Array.isArray(response?.images) ? response.images : [];
-  const importRequests = images
-    .filter((image) => image?.url)
-    .map((image) => ({
-      url: image.url,
-      pageUrl: image.pageUrl || info.pageUrl || tab.url || null,
-      source: image.source || "unknown",
-      index: image.index
-    }));
-
-  if (importRequests.length === 0) {
-    console.warn("Momento could not find Xiaohongshu note images on this page.");
-  }
-
-  return importRequests;
-}
-
-async function retryFailedXiaohongshuImportsWithFallback(info, tab, originalRequests, status, feedbackState) {
-  const failedOriginalIndexes = new Set(
-    status.failures
-      .filter((failure) => failure.source === "original")
-      .map((failure) => failure.index ?? originalRequests.find((request) => request.url === failure.url)?.index)
-      .filter((index) => index !== undefined)
-  );
-
-  if (failedOriginalIndexes.size === 0) {
-    return status;
-  }
-
-  const fallbackRequests = await importRequestsFromXiaohongshuPageImages(info, tab, true);
-  const originalRequestsByIndex = new Map(
-    originalRequests
-      .filter((request) => request.index !== undefined)
-      .map((request) => [request.index, request])
-  );
-  const retryRequests = fallbackRequests.filter((request) => {
-    if (!failedOriginalIndexes.has(request.index)) {
-      return false;
-    }
-
-    return originalRequestsByIndex.get(request.index)?.url !== request.url;
-  });
-  if (retryRequests.length === 0) {
-    return status;
-  }
-
-  console.info("Momento retrying failed Xiaohongshu originals with fallback images.", {
-    retryCount: retryRequests.length
-  });
-
-  const retryStatus = await importImages(retryRequests, { feedbackState });
-  return mergeImportStatusesAfterFallbackRetry(status, retryStatus, retryRequests);
-}
-
-function mergeImportStatusesAfterFallbackRetry(originalStatus, retryStatus, retryRequests) {
-  const retriedUrls = new Set(retryRequests.map((request) => request.url));
-  const retriedIndexes = new Set(
-    retryRequests
-      .map((request) => request.index)
-      .filter((index) => index !== undefined)
-  );
-  return {
-    requested: originalStatus.requested,
-    imported: originalStatus.imported + retryStatus.imported,
-    sourceSummary: {
-      original: originalStatus.sourceSummary.original + retryStatus.sourceSummary.original,
-      fallback: originalStatus.sourceSummary.fallback + retryStatus.sourceSummary.fallback,
-      unknown: originalStatus.sourceSummary.unknown + retryStatus.sourceSummary.unknown
-    },
-    failures: [
-      ...originalStatus.failures.filter((failure) => {
-        if (failure.source !== "original" || failure.index === undefined) {
-          return true;
-        }
-
-        return !retriedIndexes.has(failure.index);
-      }),
-      ...retryStatus.failures.filter((failure) => retriedUrls.has(failure.url))
-    ],
-    retriedWithFallback: true
+  const text = {
+    title: t("panelTitle"), close: t("panelClose"), cancel: t("panelCancel"), invert: t("panelInvert"),
+    anySize: t("panelAnySize"), minSize: t("panelMinSize", "$1"), video: t("panelVideo"),
+    empty: t("panelEmpty"), emptyFiltered: t("panelEmptyFiltered"), found: t("panelFound", "$1"),
+    selected: t("panelSelected", "$1"), selectAll: t("panelSelectAll"), selectNone: t("panelSelectNone"),
+    save: t("panelSave"), saveCount: t("panelSaveCount", "$1")
   };
+  await inject(tab.id, 0, momentoPanel, [{ items: result?.items || [], text }]);
 }
 
-function sendMessageToTab(tabId, message) {
-  return new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, message, (response) => {
-      if (chrome.runtime.lastError) {
-        resolve(null);
-        return;
-      }
-
-      resolve(response);
-    });
-  });
-}
-
-async function extractXiaohongshuImagesFromTab(tabId) {
-  return new Promise((resolve) => {
-    chrome.scripting.executeScript(
-      {
-        target: { tabId },
-        world: "MAIN",
-        func: extractXiaohongshuImagesFromInitialState
-      },
-      (results) => {
-        if (chrome.runtime.lastError) {
-          console.warn("Momento could not read Xiaohongshu page initial state.", chrome.runtime.lastError.message);
-          resolve([]);
-          return;
-        }
-
-        const urls = Array.isArray(results?.[0]?.result) ? results[0].result : [];
-        resolve(urls.map(normalizeXiaohongshuImageUrl).filter(Boolean));
-      }
-    );
-  });
-}
-
-function extractXiaohongshuImagesFromInitialState() {
-  function normalizeImageUrl(url) {
-    if (typeof url !== "string" || url.length === 0) {
-      return null;
-    }
-
-    const absoluteUrl = url.startsWith("//") ? `https:${url}` : url;
-    return /^http:\/\/[^/]*xhscdn\.com\//.test(absoluteUrl)
-      ? absoluteUrl.replace(/^http:\/\//, "https://")
-      : absoluteUrl;
-  }
-
-  function imageInfoScene(info) {
-    return info?.imageScene || info?.image_scene || "";
-  }
-
-  function imageUrl(image) {
-    const infoList = image?.infoList || image?.info_list || [];
-    const defaultUrl = image?.urlDefault || image?.url_default;
-    const wbDftUrl = infoList.find((info) => imageInfoScene(info) === "WB_DFT")?.url;
-    const firstInfoUrl = infoList[0]?.url;
-    return defaultUrl || wbDftUrl || firstInfoUrl || image?.url || image?.urlPre || image?.url_pre;
-  }
-
-  function noteImages(note) {
-    return note?.imageList || note?.image_list || [];
-  }
-
-  function noteDetailImages(state) {
-    const noteDetailMap = state?.note?.noteDetailMap;
-    if (!noteDetailMap) {
-      return [];
-    }
-
-    return Object.values(noteDetailMap).flatMap((item) => noteImages(item?.note || item?.note_card || item));
-  }
-
-  function feedImages(state) {
-    const items = state?.data?.items;
-    if (!Array.isArray(items)) {
-      return [];
-    }
-
-    const currentNoteId = window.location?.pathname?.match(/\/explore\/([^/?#]+)/)?.[1] || null;
-    return items
-      .filter((item) => !currentNoteId || item?.id === currentNoteId || item?.note_card?.id === currentNoteId || item?.noteCard?.id === currentNoteId)
-      .flatMap((item) => noteImages(item?.note_card || item?.noteCard || item?.note || item));
-  }
-
-  const state = window.__INITIAL_STATE__;
-  const urls = [...noteDetailImages(state), ...feedImages(state)]
-    .map(imageUrl)
-    .map(normalizeImageUrl)
-    .filter(Boolean);
-  return [...new Set(urls)];
-}
-
-function normalizeXiaohongshuImageUrl(url) {
-  if (typeof url !== "string" || url.length === 0) {
-    return null;
-  }
-
-  const absoluteUrl = url.startsWith("//") ? `https:${url}` : url;
-  return /^http:\/\/[^/]*xhscdn\.com\//.test(absoluteUrl)
-    ? absoluteUrl.replace(/^http:\/\//, "https://")
-    : absoluteUrl;
-}
-
-function injectXiaohongshuContentScript(tabId) {
-  return new Promise((resolve) => {
-    chrome.scripting.executeScript(
-      {
-        target: { tabId },
-        files: ["xiaohongshu-content.js"]
-      },
-      () => {
-        if (chrome.runtime.lastError) {
-          console.warn("Momento could not inject the Xiaohongshu content script.", chrome.runtime.lastError.message);
-          resolve(false);
-          return;
-        }
-
-        resolve(true);
-      }
-    );
-  });
-}
-
-async function reportImportStatusToTab(tabId, status) {
+// 页面里的提示；页面不能注入（扩展商店、PDF）就在工具栏图标上标一下。
+async function showToast(tabId, text, tone) {
   if (!tabId) {
     return;
   }
-
-  const reported = await sendImportStatusToTab(tabId, status);
-  if (reported) {
+  try {
+    await inject(tabId, 0, momentoToast, [{ text, tone }]);
+    return;
+  } catch {
+    // 落到下面的工具栏标记。
+  }
+  if (tone === "progress") {
     return;
   }
-
-  const injected = await injectXiaohongshuContentScript(tabId);
-  if (!injected) {
-    return;
-  }
-
-  await sendImportStatusToTab(tabId, status);
+  await chrome.action.setBadgeBackgroundColor({ tabId, color: tone === "error" ? "#D9483B" : "#6553F0" });
+  await chrome.action.setBadgeText({ tabId, text: tone === "error" ? "!" : "✓" });
+  await chrome.action.setTitle({ tabId, title: text });
+  setTimeout(() => {
+    chrome.action.setBadgeText({ tabId, text: "" }).catch(() => {});
+    chrome.action.setTitle({ tabId, title: t("actionTitle") }).catch(() => {});
+  }, 6000);
 }
 
-function sendImportStatusToTab(tabId, status) {
-  return new Promise((resolve) => {
-    chrome.tabs.sendMessage(
-      tabId,
-      {
-        type: "momento:import-status",
-        ...status
-      },
-      () => {
-        if (chrome.runtime.lastError) {
-          console.warn("Momento could not report import status to the page.", chrome.runtime.lastError.message);
-          resolve(false);
-          return;
-        }
+function reason(code, message) {
+  const keys = {
+    unreachable: "errNotRunning", no_library: "errNoLibrary", remote_refused: "errRefused", download_failed: "errDownload",
+    unsupported: "errUnsupported", too_large: "errTooLarge", canceled: "canceled", busy: "errBusy", not_ready: "errNotReady",
+    stream: "errStream", nothing: "errNothing", page: "errPage", update: "errUpdate"
+  };
+  return keys[code] ? t(keys[code]) : t("errGeneric", message || code || "");
+}
 
-        resolve(true);
+async function momentoStatus() {
+  try {
+    const response = await fetch(`${MOMENTO}/api/v1/status`);
+    const body = await response.json();
+    return body?.ok ? { capabilities: body.capabilities || null } : null;
+  } catch {
+    return null;
+  }
+}
+
+async function readJSON(response) {
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
+}
+
+async function pageFile(tabId, frameId, item) {
+  if (item.url.startsWith("data:")) {
+    return (await fetch(item.url)).blob();
+  }
+  const result = await inject(tabId, frameId, momentoReadBlob, [item.url, MAX_PAGE_FILE]);
+  if (!result || result.error) {
+    throw Object.assign(new Error(result?.error || "read"), { code: result?.error === "too_large" ? "too_large" : "nothing" });
+  }
+  const binary = atob(result.data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: result.type });
+}
+
+function fileName(item, type) {
+  const extension = { "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp", "image/avif": "avif", "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" }[type];
+  return `${item.kind === "video" ? "video" : "image"}${extension ? `.${extension}` : ""}`;
+}
+
+// 交给 Momento 排队，返回任务号或失败原因。要上传的文件已经在 item.blob 里读好。
+async function submit(item, meta) {
+  const body = { pageUrl: meta.pageUrl || "", referer: item.referer || "", kind: item.kind || "image", title: item.title || meta.title || "", batchId: meta.batchId, index: meta.index, total: meta.total };
+  let response;
+  if (item.upload) {
+    const blob = item.blob;
+    const form = new FormData();
+    form.append("meta", JSON.stringify(body));
+    form.append("file", blob, fileName(item, blob.type));
+    response = await fetch(`${MOMENTO}/api/v1/import/file`, { method: "POST", body: form });
+  } else {
+    response = await fetch(`${MOMENTO}/api/v1/import`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, url: item.url }) });
+  }
+  const json = await readJSON(response);
+  if (!response.ok || !json.jobId) {
+    return { done: true, ok: false, code: json.code, message: json.error || `HTTP ${response.status}` };
+  }
+  return { done: false, jobId: json.jobId };
+}
+
+// 旧版 Momento 没有任务队列：一张一张同步导入，只有第一张成功时让 Momento 提示。
+async function saveLegacy(items, meta, onProgress) {
+  const results = [];
+  let feedback = true;
+  for (const item of items) {
+    if (item.upload) {
+      results.push({ ok: false, code: "update" });
+    } else {
+      try {
+        const response = await fetch(`${MOMENTO}/api/v1/import/image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: item.url, pageUrl: meta.pageUrl || "", playFeedback: feedback })
+        });
+        const json = await readJSON(response);
+        results.push(response.ok ? { ok: true } : { ok: false, code: json.code, message: json.error || `HTTP ${response.status}` });
+        feedback = feedback && !response.ok;
+      } catch {
+        results.push({ ok: false, code: "unreachable" });
       }
-    );
-  });
+    }
+    onProgress(results.length);
+  }
+  return results;
 }
 
-function importRequestsFromMessage(message) {
-  const images = Array.isArray(message?.images) ? message.images : [];
-  return images
-    .filter((image) => image?.url)
-    .map((image) => ({
-      url: image.url,
-      pageUrl: image.pageUrl || null,
-      source: image.source || "unknown"
-    }));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function saveItems(tabId, frameId, items, meta) {
+  if (items.length === 0) {
+    await showToast(tabId, t("errNothing"), "error");
+    return;
+  }
+  const total = items.length;
+  const progress = (done) => showToast(tabId, total === 1 ? t("saving") : t("savingCount", done, total), "progress");
+  await progress(0);
+  const status = await momentoStatus();
+  if (!status) {
+    await showToast(tabId, t("errNotRunning"), "error");
+    return;
+  }
+  let results;
+  if (!status.capabilities?.jobs) {
+    results = await saveLegacy(items, meta, progress);
+  } else {
+    // 先把网页里的文件读出来，读不出来的直接记失败、不算进这一批：Momento 按这一批的总数等齐了才提示。
+    results = [];
+    const ready = [];
+    for (const item of items) {
+      if (!item.upload) {
+        ready.push(item);
+        continue;
+      }
+      try {
+        ready.push({ ...item, blob: await pageFile(tabId, frameId, item) });
+      } catch (error) {
+        results.push({ done: true, ok: false, code: error.code || "nothing", message: error.message });
+      }
+    }
+    const batchId = ready.length > 1 ? crypto.randomUUID() : "";
+    for (const [index, item] of ready.entries()) {
+      try {
+        results.push(await submit(item, { ...meta, batchId, index, total: ready.length }));
+      } catch (error) {
+        results.push({ done: true, ok: false, code: error.code || "unreachable", message: error.message });
+      }
+    }
+    const started = Date.now();
+    let lastDone = -1;
+    while (results.some((result) => !result.done) && Date.now() - started < POLL_LIMIT) {
+      await sleep(POLL_INTERVAL);
+      // 调一次扩展接口，让 Chrome 知道后台还在干活，不会在等 Momento 时把它停掉。
+      await chrome.runtime.getPlatformInfo();
+      for (const result of results.filter((r) => !r.done)) {
+        try {
+          const response = await fetch(`${MOMENTO}/api/v1/import/${result.jobId}`);
+          const job = (await readJSON(response)).job;
+          if (!response.ok || !job) {
+            Object.assign(result, { done: true, ok: false, code: "unreachable" });
+          } else if (job.state === "done" || job.state === "failed") {
+            Object.assign(result, { done: true, ok: job.state === "done", code: job.code, message: job.error });
+          }
+        } catch {
+          Object.assign(result, { done: true, ok: false, code: "unreachable" });
+        }
+      }
+      const done = results.filter((r) => r.done).length;
+      if (done !== lastDone && done < total) {
+        lastDone = done;
+        await progress(done);
+      }
+    }
+    for (const result of results.filter((r) => !r.done)) {
+      Object.assign(result, { done: true, ok: false, message: t("errTimeout") });
+    }
+  }
+  const [text, tone] = summary(results);
+  // 整帖里有分片视频没存上，接在结果后面说明。
+  await showToast(tabId, meta.skippedStreams > 0 ? `${text} · ${t("skippedStreams", meta.skippedStreams)}` : text, meta.skippedStreams > 0 && tone === "success" ? "error" : tone);
+}
+
+function summary(results) {
+  const saved = results.filter((r) => r.ok).length;
+  const failed = results.filter((r) => !r.ok && r.code !== "canceled");
+  if (saved === 0 && failed.length === 0) {
+    return [t("canceled"), "info"];
+  }
+  if (failed.length === 0) {
+    return [saved === 1 ? t("savedOne") : t("savedMany", saved), "success"];
+  }
+  const why = reason(failed[0].code, failed[0].message);
+  if (saved === 0) {
+    return [results.length === 1 ? why : t("failedMany", failed.length, why), "error"];
+  }
+  return [t("savedPartial", saved, failed.length, why), "error"];
 }

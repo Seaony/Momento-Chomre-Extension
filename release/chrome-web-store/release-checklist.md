@@ -16,8 +16,12 @@ Files that should be in the ZIP:
 
 - `manifest.json`
 - `background.js`
-- `instagram-content.js`
-- `xiaohongshu-content.js`
+- `src/collect.js`
+- `src/ui.js`
+- `src/context.js`
+- `_locales/en/messages.json`
+- `_locales/zh_CN/messages.json`
+- `_locales/ja/messages.json`
 - `icons/icon-16.png`
 - `icons/icon-32.png`
 - `icons/icon-48.png`
@@ -55,22 +59,22 @@ Current manifest facts to verify before release:
 - `icons` points to packaged PNG files under `icons/`.
 - `permissions` is limited to `activeTab`, `scripting`, and `contextMenus`.
 - `host_permissions` is limited to `http://127.0.0.1:47641/*`.
-- `content_scripts` are limited to Instagram and Xiaohongshu note URLs.
+- `content_scripts` are limited to Instagram and Xiaohongshu (one tiny script that records the right-click target).
+- `key` pins the extension ID to `bdholohelelbeepbpdapldbibidacaoo`, the only ID Momento's local API accepts.
 
 Permission explanation risks:
 
-- `contextMenus`: required to add the user-invoked right-click actions `Save Image to Momento` and `Save All Images to Momento`.
-- `activeTab`: required for temporary access to the active page after a user right-clicks, so the extension can inspect the clicked Instagram/Xiaohongshu page context.
-- `scripting`: required for Xiaohongshu only, to read page initial state in the main world and to inject `xiaohongshu-content.js` if the declared content script is not reachable.
-- `host_permissions` for `http://127.0.0.1:47641/*`: required to POST selected image URLs to the locally running Momento app. This is loopback-only and should not be described as a remote web service.
-- Instagram content script matches `https://instagram.com/*` and `https://www.instagram.com/*` so the page context menu can recover the image under the last right-click point.
-- Xiaohongshu content script matches only `https://xiaohongshu.com/explore/*` and `https://www.xiaohongshu.com/explore/*` for note detail image extraction.
+- `contextMenus`: required to add the user-invoked right-click actions `Save to Momento`, `Save Entire Post to Momento` and `Save Images on This Page…`.
+- `activeTab`: required for temporary access to the active page after the user right-clicks or clicks the toolbar button, so the extension can find the clicked image or video, or list the page's images.
+- `scripting`: required to run the packaged page scripts that find media, show the save status, and open the batch-save panel, only after a user action.
+- `host_permissions` for `http://127.0.0.1:47641/*`: required to send selected media to the locally running Momento app. This is loopback-only and should not be described as a remote web service.
+- Instagram and Xiaohongshu content script records only the element under the last right-click, because both sites cover images with overlays.
 
 Review notes to prepare:
 
 - Single purpose: save user-selected web images from Chrome into the local Momento desktop app.
 - User action boundary: imports happen only after the user chooses the extension's context menu item.
-- Data sent by the extension: image URL and source page URL, posted to `http://127.0.0.1:47641/api/v1/import/image`.
+- Data sent by the extension: the selected image or video URL (or the file itself for `blob:`/`data:` media), the source page URL, a suggested Referer, and the post title when the site provides one, posted to `http://127.0.0.1:47641/api/v1/`.
 - Data destination: local loopback Momento app on the same machine; the extension does not send data to a third-party server.
 - Remote code: select `No remote code`; all executed scripts are packaged in the extension.
 - Do not overstate storage behavior: this extension does not store user data in Chrome storage.
@@ -116,8 +120,7 @@ Run baseline validation before manual QA:
 ```sh
 node test/run-tests.js
 node --check background.js
-node --check instagram-content.js
-node --check xiaohongshu-content.js
+for script in src/*.js; do node --check "$script"; done
 node --check test/run-tests.js
 node -e 'JSON.parse(require("fs").readFileSync("manifest.json", "utf8"))'
 git diff --check
@@ -128,19 +131,18 @@ Load the unpacked extension from `/Users/seaony/code/Momento-Chrome`, then verif
 - Chrome installs the extension without manifest errors.
 - The extension icon renders in `chrome://extensions` and the toolbar extension menu.
 - Permission prompts match the expected narrow permissions; investigate any unexpected broad host warning.
-- With Momento running, right-click a normal public `http` or `https` image and choose `Save Image to Momento`; the image appears in the current Momento library.
-- With Momento stopped, the context menu action fails without opening tabs, downloading files, or showing misleading success.
-- `blob:` and `data:` images are not imported.
-- On Instagram, right-click over an image or overlay area, choose `Save Image to Momento`, and verify the selected image URL and current page URL are imported.
-- On an Instagram non-image area, the action does not import an unrelated image.
-- On a Xiaohongshu note detail page, choose `Save All Images to Momento`; all slider images are attempted once, duplicates are not imported twice, and the toast reports saved original/fallback/failure counts.
-- On Xiaohongshu, verify original URLs from `url_default`/`WB_DFT` are preferred and fallback page images are retried only for failed originals.
-- On a Xiaohongshu page with missing or changed page data, verify the extension logs a clear warning and does not report success for zero imports.
+- With Momento running, right-click a normal public image and choose `Save to Momento`; the largest available version appears in the current Momento library and the page shows a status toast.
+- With Momento stopped, the toast says Momento can't be reached; no tabs open and nothing downloads.
+- `data:` and `blob:` images are uploaded as files; `blob:` videos (segmented streams) show the "can't be saved yet" message.
+- On Instagram, right-click over an image or overlay, choose `Save to Momento`, then `Save Entire Post to Momento` on a carousel and a Reel; logged in and logged out.
+- On a Xiaohongshu note, save one image, then the whole note; Live photos save the image and its video; video notes save the video; notes viewed earlier in the same tab are not included.
+- On Pixiv and Weibo posts, save one image and the entire post (Weibo needs a logged-in session).
+- On Behance, Dribbble, Zcool, Huaban, Pinterest and X, save one image and the entire post; check that originals are saved, not thumbnails.
+- Click the toolbar button, filter by size and format, Shift-click to select a range, and save; Momento asks for a folder once and notifies once for the whole batch.
 - Open DevTools for the service worker and page; verify there are no uncaught exceptions during each flow.
-- Monitor network requests; the extension should POST only to `http://127.0.0.1:47641/api/v1/import/image`.
-- Confirm the POST body contains only `url`, `pageUrl`, and optional `playFeedback`.
+- Monitor network requests; the extension should only call `http://127.0.0.1:47641/api/v1/` (status, import, import/file and job status).
 - Reload Chrome and verify context menus are recreated after startup.
-- Install from the generated ZIP or a copy of the exact ZIP contents and repeat one normal image save plus one Xiaohongshu batch save.
+- Install from the generated ZIP or a copy of the exact ZIP contents and repeat one normal image save plus one batch save.
 
 ## Release Steps
 

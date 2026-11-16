@@ -29,25 +29,27 @@ Momento Image Saver 是 Momento 的浏览器入口。你在网页上看到想收
 <table>
   <tr>
     <td width="33%">
-      <h3>普通网页图片</h3>
-      <p>在图片上右键，选择 <strong>Save Image to Momento</strong>，Momento 会在本机下载并导入当前图库。</p>
+      <h3>任何网页</h3>
+      <p>在图片、视频或图片链接上右键，选择 <strong>保存到 Momento</strong>。扩展会找页面上最大的那一档：srcset、页面数据里的原图、常见图床的原图地址。</p>
     </td>
     <td width="33%">
-      <h3>Instagram</h3>
-      <p>在页面上右键，扩展会根据右键位置找到真实图片，避开页面覆盖层带来的误点。</p>
+      <h3>整帖保存</h3>
+      <p>在小红书、Instagram、Pixiv、微博、Behance、Dribbble、站酷、花瓣、Pinterest、X 的帖子上右键，选择 <strong>保存这一帖全部</strong>，图片、实况和 mp4 视频一起存。</p>
     </td>
     <td width="33%">
-      <h3>小红书笔记</h3>
-      <p>在笔记详情页右键，选择 <strong>Save All Images to Momento</strong>，批量保存当前轮播里的图片。</p>
+      <h3>批量保存整页</h3>
+      <p>点工具栏图标，按尺寸和格式筛选，Shift 连选，一次存进 Momento，只问一次放哪、只提示一次。</p>
     </td>
   </tr>
 </table>
 
-扩展不会收集、出售或上传你的数据。它只在你主动选择保存时，把图片 URL 和来源页面 URL 发送到本机接口：
+扩展不会收集、出售或上传你的数据。它只在你主动选择保存时，把文件地址（`blob:`、`data:` 这类则是文件本身）和来源页面发送到本机接口：
 
 ```text
-http://127.0.0.1:47641/api/v1/import/image
+http://127.0.0.1:47641/api/v1/
 ```
+
+分片播放的视频（B 站、抖音、大多数网站的播放器）暂时存不了，扩展会直接说明。
 
 ## 安装
 
@@ -58,7 +60,7 @@ http://127.0.0.1:47641/api/v1/import/image
 5. 点击“加载已解压的扩展程序”。
 6. 选择解压目录里的 `extension` 文件夹。
 7. 确认扩展列表里出现 **Momento Image Saver**。
-8. 启动 Momento，然后在网页图片上右键保存。
+8. 启动 Momento，然后在网页上右键保存，或点工具栏图标批量保存。
 
 Chrome 要加载的是包含 `manifest.json` 的 `extension` 文件夹，不是外层文件夹，也不是 zip 文件。
 

@@ -31,8 +31,8 @@ zip 里应该只包含：
 
 - `manifest.json`
 - `background.js`
-- `instagram-content.js`
-- `xiaohongshu-content.js`
+- `src/`（collect.js、ui.js、context.js）
+- `_locales/`
 - `icons/`
 
 ## 提交前
@@ -50,3 +50,8 @@ zip 里应该只包含：
 - 一个公开的隐私政策 URL，可以基于 `submission-copy.md` 里的隐私政策草稿创建。
 
 上传前重新加载并测试打包后的扩展。
+
+## 扩展 ID
+
+`manifest.json` 里的 `key` 固定了扩展 ID `bdholohelelbeepbpdapldbibidacaoo`，Momento 本机接口只放行这个 ID。
+第一次上传到 Chrome Web Store 时，在 zip 根目录放进私钥 `key.pem`（`~/.config/momento-extension/extension-key.pem`，只用于这次上传，不进仓库），商店版才会沿用同一个 ID；否则商店会分配新 ID，要把新 ID 加进 Momento 的放行名单。

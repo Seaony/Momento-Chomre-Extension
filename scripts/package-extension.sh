@@ -15,8 +15,12 @@ const manifest = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
 const requiredFiles = [
   "manifest.json",
   "background.js",
-  "instagram-content.js",
-  "xiaohongshu-content.js",
+  "src/collect.js",
+  "src/ui.js",
+  "src/context.js",
+  "_locales/en/messages.json",
+  "_locales/zh_CN/messages.json",
+  "_locales/ja/messages.json",
   ...Object.values(manifest.icons || {})
 ];
 
@@ -33,8 +37,8 @@ mkdir -p "$OUTPUT_DIR"
 zip -qr "$OUTPUT_DIR/$PACKAGE_NAME" \
   manifest.json \
   background.js \
-  instagram-content.js \
-  xiaohongshu-content.js \
+  src \
+  _locales \
   icons
 
 echo "$OUTPUT_DIR/$PACKAGE_NAME"

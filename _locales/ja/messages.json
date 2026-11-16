@@ -1,0 +1,131 @@
+{
+  "extName": {
+    "message": "Momento Image Saver"
+  },
+  "extDescription": {
+    "message": "ウェブページの画像や動画を、右クリックでこのパソコンの Momento に保存します。"
+  },
+  "actionTitle": {
+    "message": "このページの画像をまとめて保存"
+  },
+  "menuSave": {
+    "message": "Momento に保存"
+  },
+  "menuSavePost": {
+    "message": "この投稿をすべて保存"
+  },
+  "menuSavePage": {
+    "message": "このページの画像をまとめて保存…"
+  },
+  "saving": {
+    "message": "保存中…"
+  },
+  "savingCount": {
+    "message": "保存中… $1/$2"
+  },
+  "savedOne": {
+    "message": "Momento に保存しました"
+  },
+  "savedMany": {
+    "message": "$1 件を Momento に保存しました"
+  },
+  "savedPartial": {
+    "message": "$1 件を保存、$2 件は失敗しました：$3"
+  },
+  "failedMany": {
+    "message": "$1 件とも保存できませんでした：$2"
+  },
+  "canceled": {
+    "message": "保存をキャンセルしました"
+  },
+  "errNotRunning": {
+    "message": "Momento に接続できません。Momento を開いてからもう一度お試しください。"
+  },
+  "errNoLibrary": {
+    "message": "Momento でライブラリを開いてください。"
+  },
+  "errRefused": {
+    "message": "サイトがダウンロードを拒否しました。"
+  },
+  "errDownload": {
+    "message": "ダウンロードに失敗しました。接続を確認してもう一度お試しください。"
+  },
+  "errUnsupported": {
+    "message": "Momento はこの形式に対応していません。"
+  },
+  "errTooLarge": {
+    "message": "ファイルが大きすぎます。"
+  },
+  "errBusy": {
+    "message": "Momento が処理中です。しばらくしてからお試しください。"
+  },
+  "errNotReady": {
+    "message": "Momento を起動中です。しばらくしてからお試しください。"
+  },
+  "errStream": {
+    "message": "このサイトの動画は分割配信のため、まだ保存できません。"
+  },
+  "errNothing": {
+    "message": "ここに画像や動画が見つかりません。"
+  },
+  "errPage": {
+    "message": "このページを読み取れません。拡張機能を入れたばかりなら、ページを再読み込みしてからお試しください。"
+  },
+  "errUpdate": {
+    "message": "この種類のファイルを保存するには Momento をアップデートしてください。"
+  },
+  "errTimeout": {
+    "message": "Momento から応答がありません。"
+  },
+  "errGeneric": {
+    "message": "保存できませんでした：$1"
+  },
+  "panelTitle": {
+    "message": "画像をまとめて保存"
+  },
+  "panelClose": {
+    "message": "閉じる"
+  },
+  "panelCancel": {
+    "message": "キャンセル"
+  },
+  "panelInvert": {
+    "message": "選択を反転"
+  },
+  "panelAnySize": {
+    "message": "すべてのサイズ"
+  },
+  "panelMinSize": {
+    "message": "$1 px 以上"
+  },
+  "panelVideo": {
+    "message": "動画"
+  },
+  "panelEmpty": {
+    "message": "このページに保存できる画像がありません。"
+  },
+  "panelEmptyFiltered": {
+    "message": "条件に合う画像がありません。"
+  },
+  "panelFound": {
+    "message": "$1 件"
+  },
+  "panelSelected": {
+    "message": "$1 件選択中"
+  },
+  "panelSelectAll": {
+    "message": "すべて選択"
+  },
+  "panelSelectNone": {
+    "message": "選択を解除"
+  },
+  "panelSave": {
+    "message": "保存"
+  },
+  "panelSaveCount": {
+    "message": "$1 件を保存"
+  },
+  "skippedStreams": {
+    "message": "分割配信の動画 $1 件は保存できませんでした"
+  }
+}

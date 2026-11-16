@@ -1,14 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "Momento Image Saver",
-  "description": "Adds a Chrome image context menu action that imports the image into Momento.",
-  "version": "0.1.0",
-  "minimum_chrome_version": "88",
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
+  "version": "0.2.0",
+  "minimum_chrome_version": "110",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2AN6oUvpIvpjQU2wieocna947Otu3Bw1FQwp4E+MwL7N1CZzGD8E1k5cxAUDjIJ87p/Eg1vK6SHFZXxJVsFJ+xCOfaKhB6IfOdI7opSLWcGc5PxFHTHs1KdTofTMpi/xk1I0Zli+ikOI7k8IP/YQwVMTuakaq3OVATzdmq7sp+HEefmGMdvpgBv+uWUEKssTXk2qrsuQdo12h3YywxF6d2YzswwNctG82a/tG3kEWbIYJyuUPhK5EBecYLVBaOXzaW71BdC3orKuhDL+n5laZfjk0fbCOmsysF+pzvhRHvHiCv9Yk6VLANdYlklBxHMdC69BWAKMd5UfYNrO8q5VTwIDAQAB",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "__MSG_actionTitle__",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
   },
   "permissions": [
     "activeTab",
@@ -22,20 +33,12 @@
     {
       "matches": [
         "https://instagram.com/*",
-        "https://www.instagram.com/*"
+        "https://www.instagram.com/*",
+        "https://xiaohongshu.com/*",
+        "https://www.xiaohongshu.com/*"
       ],
       "js": [
-        "instagram-content.js"
-      ],
-      "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "https://xiaohongshu.com/explore/*",
-        "https://www.xiaohongshu.com/explore/*"
-      ],
-      "js": [
-        "xiaohongshu-content.js"
+        "src/context.js"
       ],
       "run_at": "document_start"
     }
