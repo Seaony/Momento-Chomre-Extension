@@ -1,279 +1,245 @@
-# Momento Image Saver - Chrome Web Store Submission Copy
+# Momento Image Saver：Chrome 应用商店上架文案
 
-Last updated: 2026-05-27
+更新：2026-11-15，按 0.2.0 的实际功能核对过。
 
-Official references checked:
+官方说明（填表前再对一遍，政策会改）：
 - Chrome Web Store Program Policies: https://developer.chrome.com/docs/webstore/program-policies
 - User Data Policy: https://developer.chrome.com/docs/webstore/program-policies/user-data-faq
 - Prepare your store listing: https://developer.chrome.com/docs/webstore/cws-dashboard-listing
 - Declare permissions and privacy practices in Developer Dashboard: https://developer.chrome.com/docs/webstore/cws-dashboard-privacy
 
-## Store Listing
+## 商店页
 
-### Short Description
+### 简短说明
 
-右键将网页图片保存到本机 Momento，支持普通图片、Instagram 定位图片和小红书笔记详情页批量保存。
+在网页上右键，把图片、视频、整帖内容或当前屏幕截图存进本机的 Momento 图库。
 
-### Detailed Description
+### 详细说明
 
-Momento Image Saver 是配合本机 Momento 使用的 Chrome 扩展。它在 Chrome 右键菜单中提供保存入口，让用户把网页图片导入当前运行的本机 Momento。
+Momento Image Saver 是 Momento 的浏览器入口。看到想留的图片，不用先下载再拖进去，在网页上右键选「保存到 Momento」就行。需要先在电脑上打开 Momento。
 
-主要功能：
+保存单张图片或视频：在图片、视频或图片链接上右键，选「保存到 Momento」。扩展会尽量找原图，比如 srcset 里最大的一档、页面数据里的原图地址，以及知乎、豆瓣、Lofter、B 站、Unsplash、Pexels、ArtStation、Flickr 等网站的原图规则。Instagram 和小红书的图片上盖着透明层，扩展会按右键的位置找到下面那张图。
 
-- 普通网页图片：右键图片，选择 "Save Image to Momento"，将该图片保存到本机 Momento。
-- Instagram 页面：在图片区域右键，扩展会根据右键位置定位页面中的实际图片，再发送给本机 Momento 导入。
-- 小红书笔记详情页：在笔记详情页右键，选择 "Save All Images to Momento"，批量保存当前笔记图片，并在页面中显示保存结果提示。
+保存一整帖：在小红书、Instagram、Pixiv、微博、X、Pinterest、Behance、Dribbble、站酷、花瓣、ArtStation 的帖子上右键，选「保存这一帖全部」，图片、实况照片和 mp4 视频一起存。
 
-工作方式：
+批量保存整页：点工具栏上的图标，打开批量面板，按尺寸和格式筛选，可以 Shift 连选，选好后一次存进 Momento。
 
-- 用户必须先在本机启动 Momento。
-- 扩展只在用户主动点击右键菜单保存时工作。
-- 扩展会把图片 URL 和来源页面 URL 发送到本机接口 `http://127.0.0.1:47641/api/v1/`。
-- Momento 在用户本机下载图片并导入本地图库。
-- 扩展不会把图片、图片 URL、来源页面 URL 或浏览数据上传到第三方服务器。
-- 扩展不包含广告、分析 SDK、远程代码或追踪功能。
+截图：在页面空白处右键，选「截取可见区域保存到 Momento」，当前看到的这一屏会作为 PNG 存进去。
 
-当前限制：
+存进去的图片会带上来源网页地址，之后在 Momento 里能点回原页面。
 
-- 需要本机 Momento 正在运行。
-- 仅支持 `http://` 和 `https://` 图片 URL。
-- `blob:` 和 `data:` 图片不支持。
-- 需要网站登录态或浏览器 Cookie 才能访问的图片，可能无法由本机 Momento 下载。
+几点限制：
+- Momento 没打开时存不了，扩展会提示。
+- X 的视频会存最高清的 mp4。B 站、抖音、直播回放这类分片播放的视频存不了，扩展会直接说明。
+- 要登录才能看的图片，有时 Momento 下载不到。
+- 浏览器自带页面和扩展商店页面不允许截图。
 
-### Category Recommendation
+扩展只把你选中的内容交给本机的 Momento，不连任何外部服务器，没有广告、统计或账号。
 
-Productivity
+### 分类
 
-Reason: this extension adds a user-initiated workflow action for saving web images into the user's local Momento library.
+Productivity（效率）
 
-### Language
+理由：扩展只在用户操作时，把网页图片存进本机的 Momento 图库。
 
-Chinese (Simplified) / zh_CN
+### 语言
 
-### Homepage URL Placeholder
+中文（简体）/ zh_CN。扩展界面另有英文和日文。
+
+### 主页网址（待填）
 
 `https://<your-domain>/momento-image-saver`
 
-### Support URL Placeholder
+### 支持网址（待填）
 
 `https://<your-domain>/momento-image-saver/support`
 
-## Privacy Practices
+## 隐私
 
-### Single Purpose Statement
+### 单一用途
 
-Momento Image Saver 的单一用途是：让用户通过 Chrome 右键菜单，把自己选择的网页图片保存到同一台电脑上正在运行的 Momento。
+让用户把网页上自己选中的图片、视频或当前页面截图，存进同一台电脑上正在运行的 Momento。
 
-扩展不提供广告、分析、推荐、账号体系、云同步或第三方上传功能。
+扩展没有广告、统计、推荐、账号、云同步，也不把数据传给第三方。
 
-### Permission Justifications
+### 权限说明
 
 #### `contextMenus`
 
-用于在 Chrome 右键菜单中添加保存入口：
-
-- 普通图片上的 "Save Image to Momento"
-- Instagram 页面上的 "Save Image to Momento"
-- 小红书笔记详情页上的 "Save All Images to Momento"
-
-该权限是扩展核心功能的入口。扩展只在用户主动选择这些菜单项时执行保存流程。
+在右键菜单里加四个入口：「保存到 Momento」「保存这一帖全部」「批量保存本页图片…」「截取可见区域保存到 Momento」。只有用户点了其中一项，扩展才开始工作。
 
 #### `activeTab`
 
-用于在用户主动点击右键菜单后，临时访问当前标签页，以定位用户要保存的图片或读取当前小红书笔记中的图片 URL。
-
-扩展不会持续读取所有标签页，也不会在后台扫描浏览历史。访问范围由用户当前操作触发，并限制在当前页面。
+用户点了右键菜单或工具栏图标后，临时访问当前这个标签页：找出要保存的图片地址，打开批量面板，或者截取可见区域（`chrome.tabs.captureVisibleTab`）。不读取其他标签页，也不在后台扫描页面。
 
 #### `scripting`
 
-用于在用户触发保存操作后，在当前页面执行必要的图片提取逻辑：
-
-- 小红书笔记详情页：读取页面中已渲染或页面状态中包含的图片 URL。
-- 必要时重新注入内容脚本，以便向页面显示保存结果提示。
-
-该权限不用于注入远程代码，也不用于修改网页业务逻辑。
+在用户操作后的当前页面里运行扩展自带的脚本：找原图地址、读取帖子里的图片列表、显示批量面板和保存结果提示。网页里 `blob:` 地址的文件只有页面自己能读，也通过这个脚本读出来交给 Momento。扩展不加载远程代码，也不改网页本身的功能。
 
 #### `http://127.0.0.1:47641/*`
 
-用于把用户选择的图片 URL 和来源页面 URL 发送给本机 Momento 的本地导入接口：
+把用户选中的内容发给本机 Momento 的导入接口 `http://127.0.0.1:47641/api/v1/`。`127.0.0.1` 是本机地址，请求不会离开这台电脑。
 
-`http://127.0.0.1:47641/api/v1/`
+#### 内容脚本（Instagram、小红书）
 
-`127.0.0.1` 是本机 loopback 地址，请求只发送到同一台电脑上的 Momento。扩展不会把这些数据发送到 Momento 之外的服务器或第三方服务。
+如果后台要求说明内容脚本的站点范围，用这段：
 
-#### Instagram / Xiaohongshu Content Script Site Access
+Instagram 和小红书的图片上盖着透明层，右键时浏览器拿不到图片地址。扩展在这两个网站上放了一个很小的内容脚本，只记下最后一次右键点到的元素，用户选择保存时据此找到下面的图片。它不读取页面内容，不发送任何数据。
 
-如果 Developer Dashboard 要求说明声明的站点匹配范围，可使用以下说明：
+### 数据使用声明
 
-扩展在 Instagram 页面使用内容脚本记录用户最后一次右键位置，以便在 Instagram 的覆盖层结构中定位实际图片 URL。扩展在小红书笔记详情页使用内容脚本提取当前笔记的图片 URL，并显示保存结果提示。两个内容脚本都只为用户主动触发的保存操作服务，不收集浏览历史，不上传页面内容。
+#### 扩展会处理的数据
 
-### Data Usage Disclosures
+- 用户选中保存的图片或视频地址。
+- 来源网页的地址和标题，用来让 Momento 记录来源。
+- `blob:`、`data:` 地址的文件内容，以及用户主动截取的可见区域截图。这些文件不能按地址下载，扩展直接把文件交给本机 Momento。
+- 用户选择「保存这一帖全部」时，当前帖子里的图片和视频地址列表。为了拿到原图，扩展在 Instagram、Pixiv、微博的页面里向这个网站自己的接口查询帖子信息，请求只发往当前网站，用的是用户在这个网站已有的登录状态，查询结果只用来找出图片地址，不保存也不转发。
 
-#### Data handled by the extension
+#### 不收集的数据
 
-- 图片 URL：用户通过右键菜单选择保存的图片地址。
-- 来源页面 URL：图片所在页面地址，用于让 Momento 记录来源。
-- 小红书笔记图片 URL 列表：仅在用户选择批量保存小红书笔记图片时提取。
+- 姓名、邮箱、账号 ID、电话等个人身份信息。
+- 健康、金融、支付或登录凭据。
+- 精确位置。
+- 浏览历史。
+- 网页里的消息、表单、密码等内容。
+- 不使用广告标识、追踪 Cookie、统计 SDK 或远程遥测。
 
-#### Data not collected
+#### 数据传输
 
-- 不收集姓名、邮箱、账号 ID、电话号码等个人身份信息。
-- 不收集健康、金融、支付或认证信息。
-- 不收集精确地理位置。
-- 不读取或保存完整浏览历史。
-- 不读取页面中的消息、表单、密码或账号内容。
-- 不使用广告标识符、追踪 Cookie、分析 SDK 或远程遥测。
+- 只在用户选择保存时，把上面列出的数据发到 `http://127.0.0.1:47641/api/v1/`，这是本机 Momento 的接口。
+- 不上传到云端、开发者服务器、广告网络、统计平台或数据中介。
 
-#### Data transmission
+#### 数据存储
 
-- 只在用户主动选择保存操作时，把图片 URL 和来源页面 URL 发送到 `http://127.0.0.1:47641/api/v1/`。
-- 该地址是用户本机 Momento 的本地接口，不是第三方服务器。
-- 扩展不会把数据上传到云端、开发者服务器、广告网络、分析平台或数据代理。
+- 扩展自己不存任何东西，没有使用 Chrome storage，不留保存记录。
+- 存进来的图片由本机 Momento 放在用户自己的图库里。
 
-#### Data storage
-
-- 扩展不在 Chrome storage 中保存图片历史、浏览历史或用户档案。
-- 导入后的图片由本机 Momento 按其本地图库逻辑保存。
-
-#### Data sale / sharing
+#### 出售与共享
 
 - 不出售用户数据。
-- 不向第三方共享用户数据。
-- 不将数据用于广告、画像、信用评估或与保存图片无关的目的。
+- 不与第三方共享用户数据。
+- 不把数据用于广告、画像、信用评估或保存图片以外的用途。
 
-## Privacy Policy Draft
+## 隐私政策（英文，发布到支持网址）
 
 ### Momento Image Saver Privacy Policy
 
-Last updated: 2026-05-27
+Last updated: 2026-11-15
 
-Momento Image Saver is a Chrome extension for saving web images into the Momento app running on the same computer.
+Momento Image Saver is a Chrome extension that saves images and videos from web pages into the Momento app running on your own computer.
 
 #### What the extension does
 
-When you choose a Momento save action from Chrome's right-click menu, the extension sends the selected image URL and the source page URL to the local Momento import endpoint:
+The extension only acts when you choose one of its actions: Save to Momento, Save Entire Post to Momento, Save Images on This Page, or Save Screenshot of Visible Area. It then sends what you chose to the Momento app on the same computer through its local endpoint:
 
 `http://127.0.0.1:47641/api/v1/`
 
-Momento then downloads the image on your computer and imports it into your local Momento library.
+Momento downloads the files on your computer and adds them to your local library.
 
-#### Data we handle
+#### Data the extension handles
 
-The extension may handle:
-
-- the image URL you choose to save;
-- the source page URL where the image was found;
-- on Xiaohongshu note detail pages, the list of image URLs in the note when you choose the batch save action.
+- the address of each image or video you choose to save;
+- the address and title of the page it came from, so Momento can link back to the source;
+- the file itself when it has no downloadable address (`blob:` and `data:` URLs) and the screenshot when you choose to capture the visible area;
+- when you save a whole post, the list of image and video addresses in that post. On Instagram, Pixiv and Weibo the extension asks the site's own page-data endpoint for the post's original images. That request goes only to the site you are on, uses the login you already have there, and the result is used only to find the image addresses.
 
 #### What we do not collect
 
-Momento Image Saver does not collect personal information such as your name, email address, account identifiers, phone number, payment information, health information, financial information, authentication information, or precise location.
+The extension does not collect your name, email address, account identifiers, phone number, payment, health, financial or authentication information, or location. It does not collect browsing history, and it does not read messages, forms or passwords on web pages. It has no analytics, advertising SDKs, tracking cookies or remote telemetry.
 
-The extension does not collect your browsing history. It does not use analytics, advertising SDKs, tracking cookies, or remote telemetry.
+#### Nothing leaves your computer
 
-#### No cloud upload by the extension
+The extension sends data only to the Momento app at `127.0.0.1` on the same computer. It does not upload anything to our servers or to any third party. The extension itself stores nothing.
 
-Momento Image Saver does not upload images, image URLs, source page URLs, or browsing data to third-party servers. The extension only sends the selected image information to the local Momento app at `127.0.0.1` on the same computer.
+#### No sale or sharing
 
-#### No sale or third-party sharing
+We do not sell user data and do not share it with advertisers, analytics providers, data brokers or anyone else.
 
-We do not sell user data. We do not share user data with advertisers, analytics providers, data brokers, or other third parties.
+#### Momento must be running
 
-#### Local app requirement
-
-Momento Image Saver requires the Momento desktop app to be running locally. If Momento is not running, the extension cannot complete the import.
+If Momento is not running, the extension cannot save anything and tells you so.
 
 #### Contact
 
-For privacy or support questions, contact:
+For privacy or support questions:
 
 `<support-email-or-support-url>`
 
-## Review Notes To Reviewer
+## 给审核员的说明（英文）
 
 ### Summary
 
-Momento Image Saver is a Manifest V3 extension with one purpose: save user-selected web images into the Momento desktop app running on the same computer.
+Momento Image Saver is a Manifest V3 extension with one purpose: save images, videos or a screenshot the user picks on a web page into the Momento desktop app on the same computer.
 
-The extension uses the local endpoint below:
-
-`http://127.0.0.1:47641/api/v1/`
-
-This endpoint is served by the local Momento app. It is a loopback-only integration. The extension does not send the image URL or source page URL to any remote server.
+All saves go to `http://127.0.0.1:47641/api/v1/`, which is served by the local Momento app. Nothing is sent to a remote server.
 
 ### Test Requirements
 
-- Chrome with the unpacked or packaged extension installed.
-- Momento desktop app running on the same computer.
-- Momento must expose the local import endpoint on `127.0.0.1:47641`.
+- Chrome with the extension installed.
+- The Momento desktop app running on the same computer, with the browser extension option turned on in its settings (it listens on `127.0.0.1:47641`).
 
-### Basic Image Test
+### Single Image
 
-1. Start Momento and keep it running.
-2. Open any webpage containing a normal `http://` or `https://` image.
-3. Right-click the image.
-4. Choose "Save Image to Momento".
-5. Verify that the image appears in the local Momento library.
+1. Open any web page with an image.
+2. Right-click the image and choose "Save to Momento".
+3. The image appears in Momento, and the page shows a short confirmation.
 
-### Instagram Test
+### Whole Post
 
-1. Start Momento and keep it running.
-2. Open an Instagram page that contains an image.
-3. Right-click on the visible image area.
-4. Choose "Save Image to Momento".
-5. Verify that the selected image appears in the local Momento library.
+1. Open a post with several images, for example an Instagram post or a Pixiv artwork page.
+2. Right-click on the post and choose "Save Entire Post to Momento".
+3. All images in the post appear in Momento.
 
-Note: Instagram may place overlay elements above the actual image. The extension records the right-click position and resolves the image under that position.
+On Instagram an invisible layer covers the image, so the extension remembers where the user right-clicked and finds the image under that point.
 
-### Xiaohongshu Note Detail Test
+### Save Images on This Page
 
-1. Start Momento and keep it running.
-2. Open a Xiaohongshu note detail page matching `https://www.xiaohongshu.com/explore/*`.
-3. Right-click on the page or image area.
-4. Choose "Save All Images to Momento".
-5. Verify that the note images appear in the local Momento library.
-6. A page toast should show saved/fallback/failure counts after the import attempt.
+1. Click the extension icon in the toolbar.
+2. A panel lists the images on the page. Filter by size or format, select some, and click save.
+3. The selected images appear in Momento.
+
+### Screenshot
+
+1. Right-click an empty area of a page and choose "Save Screenshot of Visible Area".
+2. A PNG of the visible area appears in Momento.
 
 ### If Momento Is Not Running
 
-If Momento is not running, the extension's local request to `127.0.0.1:47641` will fail and the image will not be imported. This is expected because the extension has no remote fallback and does not upload data to any cloud service.
+The request to `127.0.0.1:47641` fails and the page shows a message asking the user to open Momento. There is no remote fallback.
 
-## Screenshot Checklist
+## 截图清单
 
-Use screenshots that show the actual extension workflow. Avoid claiming cloud sync, backup, AI processing, or any functionality not provided by the extension.
+用真实界面截图，不说扩展做不到的事。
 
-- Store screenshot 1: Chrome right-click menu on a normal webpage image with "Save Image to Momento" visible.
-- Store screenshot 2: Momento after the image has been imported locally.
-- Store screenshot 3: Instagram page right-click workflow with "Save Image to Momento" visible.
-- Store screenshot 4: Xiaohongshu note detail page with "Save All Images to Momento" visible.
-- Store screenshot 5: Xiaohongshu import result toast showing saved/fallback/failure counts.
-- Remove or blur private account names, personal files, private URLs, notifications, and unrelated browser tabs.
-- Use real UI screenshots, not marketing mockups.
-- Keep text readable at Chrome Web Store preview sizes.
-- Do not show unsupported claims such as automatic cloud backup, third-party upload, all-site batch scraping, or analytics.
+- 截图 1：普通网页上右键图片，菜单里看得到「保存到 Momento」。
+- 截图 2：图片存进 Momento 后的图库界面。
+- 截图 3：帖子页右键，菜单里看得到「保存这一帖全部」。
+- 截图 4：批量保存面板，带尺寸、格式筛选和已选状态。
+- 截图 5：保存完成的提示。
+- 去掉或模糊私人账号名、个人文件、私密网址、通知和无关标签页。
+- 用真实截图，不用营销合成图。
+- 在商店缩略图尺寸下字要看得清。
+- 不出现自动云备份、上传到第三方、AI 处理、统计这类扩展没有的功能。
 
-## Promotional Image Checklist
+## 宣传图清单
 
-### Small Promotional Tile
+### 小宣传图
 
-- Size: 440 x 280 px.
-- Format: PNG or JPEG.
-- Use the Momento Image Saver name or logo clearly.
-- Show the core action: right-click image -> save to local Momento.
-- Keep the design readable without relying on small body text.
-- Do not imply cloud upload, AI enhancement, cross-device sync, or backup unless those features are separately available and documented.
+- 尺寸 440 × 280，PNG 或 JPEG。
+- 名字或图标要清楚。
+- 表现核心动作：右键图片，存进本机 Momento。
+- 不靠小字说明。
+- 不暗示云上传、AI 增强、跨设备同步或备份。
 
-### Marquee Promotional Tile
+### 大宣传图
 
-- Size: 1400 x 560 px.
-- Format: PNG or JPEG.
-- Present the extension as a local image-saving bridge for Momento.
-- Use product UI or a simple workflow composition instead of abstract decoration.
-- Keep important content away from edges so Chrome Web Store cropping does not remove it.
-- Avoid badges such as "best", "officially recommended", "secure", or "private by default" unless there is reviewed support for the claim.
+- 尺寸 1400 × 560，PNG 或 JPEG。
+- 用产品界面或简单的操作流程，不用抽象装饰。
+- 重要内容离边缘远一点，免得被商店裁掉。
+- 不用「最好」「官方推荐」「安全」「默认隐私」这类说不清依据的标语。
 
-### Icon / Brand Asset Check
+### 图标
 
-- Confirm the store icon matches the packaged extension icon.
-- Use the final 128 x 128 icon asset for the listing.
-- Ensure the icon remains clear on both light and dark Chrome Web Store backgrounds.
+- 商店图标和扩展包里的图标一致。
+- 用正式的 128 × 128 图标。
+- 浅色和深色背景下都看得清。
