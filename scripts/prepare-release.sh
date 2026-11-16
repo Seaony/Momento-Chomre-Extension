@@ -146,17 +146,19 @@ cat > "$MANUAL_ROOT/README.md" <<EOF
 5. 选择解压出来的 \`extension\` 文件夹。
 6. 确认扩展列表中出现 \`Momento Image Saver\`。
 7. 启动本机 Momento。
-8. 在网页图片上右键，选择 \`Save Image to Momento\`。
+8. 在网页图片上右键，选择 \`保存到 Momento\`（英文界面是 \`Save to Momento\`）。
 
-## 小红书批量保存
+## 其他保存方式
 
-打开小红书笔记详情页，例如 \`https://www.xiaohongshu.com/explore/...\`，在页面任意位置右键，选择 \`Save All Images to Momento\`。
+- 整帖保存：在小红书、Instagram、Pixiv、微博、X 等网站的帖子上右键，选择 \`保存这一帖全部\`。
+- 批量保存：点工具栏上的扩展图标，在面板里挑选本页图片。
+- 截图：在页面空白处右键，选择 \`截取可见区域保存到 Momento\`。
 
 ## 注意事项
 
 - 不要直接选择整个 \`$MANUAL_PACKAGE_NAME\` 文件夹；Chrome 需要选择里面的 \`extension\` 文件夹。
 - 不要直接把 zip 拖进 Chrome。普通 Chrome 用户通常需要先解压，再使用 \`Load unpacked\`。
-- Momento 必须已经在本机运行，并监听 \`http://127.0.0.1:47641/api/v1/import/image\`。
+- Momento 必须已经在本机运行，并在设置里打开「浏览器扩展」（监听 \`127.0.0.1:47641\`）。
 - 这个安装方式不会自动更新。以后升级时，需要删除旧扩展，再按同样步骤加载新包。
 - 如果 Chrome 提示开发者模式扩展警告，这是手动安装扩展的正常提示。
 EOF
