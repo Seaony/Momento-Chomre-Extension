@@ -128,6 +128,16 @@ async function momentoCollect(args) {
       u.pathname = u.pathname.replace(/\/(micro_square|smaller_square|small_square|small|medium)\//, "/large/");
     } else if (/(^|\.)(huaban|hbimg|huabanimg)\.com$/.test(host)) {
       u.pathname = u.pathname.replace(/_(fw|sq|gr)\d+[a-z]*$/i, "");
+    } else if (/(^|\.)zhimg\.com$/.test(host)) {
+      // 知乎：_720w、_b、_hd 这些后缀换成 _r 就是上传的原图，扩展名不影响。
+      u.pathname = u.pathname.replace(/\/(v2-[0-9a-f]+)(_[a-z0-9]+)?(\.[a-z0-9]+)$/i, "/$1_r$3");
+      u.search = "";
+    } else if (host === "images.unsplash.com") {
+      // 去掉 w、q、fit 等参数就是原图（plus.unsplash.com 是付费图，带水印，不动）。
+      u.search = "";
+    } else if (/(^|\.)staticflickr\.com$/.test(host)) {
+      // Flickr：同一个密钥最大到 _b（1024 宽）。更大的尺寸换了密钥，实测页面数据里的大尺寸地址常常加载不出来，不用。
+      u.pathname = u.pathname.replace(/\/(\d+_[0-9a-f]+)(_[sqtmnwzc])?\.(jpg|png)$/, "/$1_b.$3");
     }
     return u.href;
   }
@@ -266,6 +276,24 @@ async function momentoCollect(args) {
     return upgradeUrl(url);
   }
 
+  // ArtStation 很多图在 large（1920 宽）之外还有 4k 档，但不是每张都有：先试着加载，能加载才换过去。
+  // 只给单张和整帖用；整页面板一次几百张，不逐张试。
+  async function artstation4k(items) {
+    const load = (url) => new Promise((resolve) => {
+      const probe = new Image();
+      const timer = setTimeout(() => resolve(false), 6000);
+      probe.onload = () => { clearTimeout(timer); resolve(probe.naturalWidth > 0); };
+      probe.onerror = () => { clearTimeout(timer); resolve(false); };
+      probe.src = url;
+    });
+    await Promise.all(items.map(async (item) => {
+      const match = item.url?.match(/^(https:\/\/cdn[a-z]?\.artstation\.com\/p\/assets\/(?:images|covers)\/.*)\/large\/(.*)$/);
+      if (match && await load(`${match[1]}/4k/${match[2]}`)) {
+        item.url = `${match[1]}/4k/${match[2]}`;
+      }
+    }));
+  }
+
   // 测试用：直接算一张图的最大地址。
   if (args.__bestImage) {
     return bestImageUrl(args.__bestImage);
@@ -278,6 +306,11 @@ async function momentoCollect(args) {
     const direct = urls.find(isHttp);
     if (direct) {
       return { url: direct };
+    }
+    // X 的视频是分片流，但页面数据里有各档 mp4（momentoReadXVideos 在主环境里按封面对好的）。
+    const x = video.poster && args.state?.xVideos?.find((item) => item.poster === video.poster);
+    if (x) {
+      return { url: x.url };
     }
     // 播放器用的是分片流（blob:），看页面有没有声明 mp4 直链。
     const og = doc.querySelector('meta[property="og:video:secure_url"], meta[property="og:video:url"], meta[property="og:video"]');
@@ -720,6 +753,9 @@ async function momentoCollect(args) {
       // 平台站点上找不到帖子时不能退回通用规则整页乱存。
       items = args.post ? (adapter ? [] : genericPost()) : genericSingle();
     }
+    if (/(^|\.)artstation\.com$/.test(host)) {
+      await artstation4k(items.filter(Boolean));
+    }
     const seen = new Set();
     const unique = items.filter((item) => item?.url && !seen.has(item.url) && seen.add(item.url));
     for (const item of unique) {
@@ -759,6 +795,68 @@ function momentoReadXiaohongshuNote() {
   }).filter((image) => image.url);
   const video = note.type === "video" ? bestStream(note.video?.media?.stream) : null;
   return { title: note.title || "", images, video };
+}
+
+// 在 X 页面主环境里，给页面上每个视频找它的 mp4：React 组件属性里带着推文数据，有各个码率的 mp4 地址，取码率最高的。
+// 封面里有媒体 ID 时只认地址里 ID 一致的，免得对上引用推文里的视频；自定义封面没有 ID，就用离视频最近的那组。
+// 按封面地址交回，扩展那边用封面认视频。
+// eslint-disable-next-line no-unused-vars
+function momentoReadXVideos() {
+  const matches = (v, id) => v?.content_type === "video/mp4" && typeof v.url === "string" && (!id || v.url.includes(`/${id}/`));
+  const variantsNear = (element, id) => {
+    // 视频元素是播放器自己建的，不带 React 属性；往上找第一个带的父元素。
+    let owner = element;
+    let fiberKey = null;
+    while (owner && !(fiberKey = Object.keys(owner).find((key) => key.startsWith("__reactFiber$")))) {
+      owner = owner.parentElement;
+    }
+    let fiber = owner && fiberKey ? owner[fiberKey] : null;
+    // 只在这条推文（article）里面找，走出去就是时间线里别的推文了。
+    const article = element.closest("article");
+    for (let depth = 0; fiber && depth < 60; depth += 1, fiber = fiber.return) {
+      if (article && fiber.stateNode instanceof Element && !article.contains(fiber.stateNode)) {
+        break;
+      }
+      const seen = new Set();
+      const stack = [[fiber.memoizedProps, 0]];
+      while (stack.length > 0) {
+        const [node, level] = stack.pop();
+        if (!node || typeof node !== "object" || seen.has(node) || level > 6) {
+          continue;
+        }
+        seen.add(node);
+        if (Array.isArray(node.variants) && node.variants.some((v) => matches(v, id))) {
+          return node.variants;
+        }
+        for (const key of Object.keys(node)) {
+          if (key !== "children" && !key.startsWith("_")) {
+            stack.push([node[key], level + 1]);
+          }
+        }
+      }
+    }
+    return null;
+  };
+  const results = [];
+  for (const video of document.querySelectorAll("video[poster]")) {
+    if (!/(^|\.)twimg\.com$/.test(new URL(video.poster, location.href).hostname)) {
+      continue;
+    }
+    const id = video.poster.match(/(?:amplify_video_thumb|ext_tw_video_thumb|tweet_video_thumb)\/(\d+)\//)?.[1];
+    let variants = null;
+    try {
+      variants = variantsNear(video, id);
+    } catch (error) {
+      console.warn("Momento: 读不到 X 视频数据", error);
+    }
+    const best = (variants || [])
+      .filter((v) => matches(v, id))
+      .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0))[0];
+    if (best) {
+      results.push({ poster: video.poster, url: best.url });
+    }
+  }
+  return results;
 }
 
 // 读 blob: 地址的内容（只能在它所在的页面里读），交回扩展上传给 Momento。

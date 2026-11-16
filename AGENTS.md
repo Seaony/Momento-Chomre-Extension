@@ -38,7 +38,7 @@ http://127.0.0.1:47641/api/v1/import/image  旧版 Momento 的同步接口，没
 
 - `manifest.json`：权限、host permissions、content scripts、service worker。
 - `background.js`：右键菜单、工具栏按钮、调用 Momento 本机接口（任务、轮询、上传、旧版兼容）、提示。
-- `src/collect.js`：注入页面找图和视频。通用规则（srcset、页面数据里的原图、图床规则表、同结构整帖）为主，小红书、Instagram、Pixiv、微博四个平台单独适配。注入的函数必须自成一体。
+- `src/collect.js`：注入页面找图和视频。通用规则（srcset、页面数据里的原图、图床规则表、同结构整帖）为主，小红书、Instagram、Pixiv、微博四个平台单独适配；X 的视频在页面主环境里从 React 组件属性读 mp4（`momentoReadXVideos`）。注入的函数必须自成一体。
 - `src/ui.js`：注入页面的保存提示和批量保存面板。
 - `src/context.js`：Instagram、小红书记下右键点到的元素。
 - `_locales/`：中英日文案，key 和占位符必须齐全。

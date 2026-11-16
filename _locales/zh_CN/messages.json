@@ -17,6 +17,12 @@
   "menuSavePage": {
     "message": "批量保存本页图片…"
   },
+  "menuScreenshot": {
+    "message": "截取可见区域保存到 Momento"
+  },
+  "errScreenshot": {
+    "message": "这个页面截不了图，浏览器自带页面和扩展商店不允许截图"
+  },
   "saving": {
     "message": "正在保存…"
   },

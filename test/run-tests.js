@@ -58,6 +58,13 @@ async function testUrlRules() {
   assert.strictEqual(upgradeUrl("https://gd-hbimg.huabanimg.com/abcdef123_fw240webp?auth_key=x"), "https://gd-hbimg.huabanimg.com/abcdef123?auth_key=x");
   assert.strictEqual(upgradeUrl("https://wx1.sinaimg.cn/orj360/abcdefgh.jpg"), "https://wx1.sinaimg.cn/large/abcdefgh.jpg");
   assert.strictEqual(upgradeUrl("https://i0.hdslb.com/bfs/archive/abc.jpg@672w_378h_1c.webp"), "https://i0.hdslb.com/bfs/archive/abc.jpg");
+  assert.strictEqual(upgradeUrl("https://pic2.zhimg.com/100/v2-0b76aceb29d84a748a44ac749e317d65_hd.png?source=abc"), "https://pic2.zhimg.com/100/v2-0b76aceb29d84a748a44ac749e317d65_r.png");
+  assert.strictEqual(upgradeUrl("https://pic4.zhimg.com/v2-a526f17e73201f76fe99ee9b3b7c349b.jpg"), "https://pic4.zhimg.com/v2-a526f17e73201f76fe99ee9b3b7c349b_r.jpg");
+  assert.strictEqual(upgradeUrl("https://images.unsplash.com/photo-1498938684035-eb4e78131735?ixlib=rb-4.0.3&w=1080&q=80"), "https://images.unsplash.com/photo-1498938684035-eb4e78131735");
+  assert.strictEqual(upgradeUrl("https://plus.unsplash.com/premium_photo-1?w=1080"), "https://plus.unsplash.com/premium_photo-1?w=1080");
+  assert.strictEqual(upgradeUrl("https://live.staticflickr.com/65535/55652599757_94624c7fbf_w.jpg"), "https://live.staticflickr.com/65535/55652599757_94624c7fbf_b.jpg");
+  assert.strictEqual(upgradeUrl("https://live.staticflickr.com/65535/55652599757_94624c7fbf.jpg"), "https://live.staticflickr.com/65535/55652599757_94624c7fbf_b.jpg");
+  assert.strictEqual(upgradeUrl("https://live.staticflickr.com/65535/55652599757_a7c39aee52_k.jpg"), "https://live.staticflickr.com/65535/55652599757_a7c39aee52_k.jpg");
   // 带签名的地址一律不动。
   for (const url of ["https://scontent.cdninstagram.com/v/t51/123_456_n.jpg?stp=dst-jpg_s640x640&_nc_ht=x&oh=sig", "https://sns-webpic-qc.xhscdn.com/202611/abc!nd_dft_wlteh_webp_3"]) {
     assert.strictEqual(upgradeUrl(url), url);

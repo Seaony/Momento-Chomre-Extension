@@ -17,6 +17,12 @@
   "menuSavePage": {
     "message": "このページの画像をまとめて保存…"
   },
+  "menuScreenshot": {
+    "message": "表示中の範囲をスクリーンショットして保存"
+  },
+  "errScreenshot": {
+    "message": "このページはスクリーンショットできません。ブラウザのページや Chrome ウェブストアは撮影できません"
+  },
   "saving": {
     "message": "保存中…"
   },

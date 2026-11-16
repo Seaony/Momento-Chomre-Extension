@@ -1,10 +1,11 @@
-/* global momentoCollect, momentoReadXiaohongshuNote, momentoReadBlob, momentoToast, momentoPanel */
+/* global momentoCollect, momentoReadXiaohongshuNote, momentoReadXVideos, momentoReadBlob, momentoToast, momentoPanel */
 importScripts("src/collect.js", "src/ui.js");
 
 const MOMENTO = "http://127.0.0.1:47641";
 const MENU_SAVE = "momento-save";
 const MENU_POST = "momento-save-post";
 const MENU_PAGE = "momento-save-page";
+const MENU_SHOT = "momento-save-screenshot";
 // 能「保存这一帖全部」的帖子页。
 const POST_PATTERNS = [
   "https://www.xiaohongshu.com/explore/*",
@@ -19,7 +20,8 @@ const POST_PATTERNS = [
   "https://www.behance.net/gallery/*",
   "https://dribbble.com/shots/*",
   "https://huaban.com/pins/*",
-  "https://www.zcool.com.cn/work/*"
+  "https://www.zcool.com.cn/work/*",
+  "https://www.artstation.com/artwork/*"
 ];
 // 网页里读出来再上传的文件（blob:、data:）最大多少；再大扩展后台装不下。
 const MAX_PAGE_FILE = 200 * 1024 * 1024;
@@ -35,6 +37,7 @@ function createMenus() {
     chrome.contextMenus.create({ id: MENU_SAVE, title: t("menuSave"), contexts: ["image", "video", "link", "page"] });
     chrome.contextMenus.create({ id: MENU_POST, title: t("menuSavePost"), contexts: ["image", "video", "link", "page"], documentUrlPatterns: POST_PATTERNS });
     chrome.contextMenus.create({ id: MENU_PAGE, title: t("menuSavePage"), contexts: ["page", "action"] });
+    chrome.contextMenus.create({ id: MENU_SHOT, title: t("menuScreenshot"), contexts: ["page", "action"] });
   });
 }
 
@@ -73,6 +76,10 @@ async function handleMenu(info, tab) {
     await openPanel(tab);
     return;
   }
+  if (info.menuItemId === MENU_SHOT) {
+    await saveScreenshot(tab);
+    return;
+  }
   const frameId = info.frameId ?? 0;
   const result = await collect(tab, frameId, {
     srcUrl: info.srcUrl || null,
@@ -87,6 +94,22 @@ async function handleMenu(info, tab) {
   await saveItems(tab.id, frameId, result.items, { pageUrl: result.pageUrl || info.pageUrl || tab.url, title: "", skippedStreams: result.skippedStreams || 0 });
 }
 
+// 截当前标签页的可见区域（点菜单时 activeTab 给了权限），当成网页里的文件上传给 Momento。
+// 先截图再弹「保存中」的提示，不然提示会被截进去。
+async function saveScreenshot(tab) {
+  let dataUrl;
+  try {
+    dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
+  } catch (error) {
+    console.warn("Momento: 截图失败", error);
+    await showToast(tab.id, t("errScreenshot"), "error");
+    return;
+  }
+  // chrome:、file: 这类页面也能截，但 Momento 只收 http(s) 的来源地址，这时不带来源。
+  const pageUrl = /^https?:/i.test(tab.url || "") ? tab.url : "";
+  await saveItems(tab.id, 0, [{ url: dataUrl, kind: "image", upload: true, title: tab.title || "" }], { pageUrl, title: tab.title || "" });
+}
+
 async function inject(tabId, frameId, func, args, world = "ISOLATED") {
   const [first] = await chrome.scripting.executeScript({ target: { tabId, frameIds: [frameId] }, func, args, world });
   return first?.result;
@@ -98,6 +121,8 @@ async function collect(tab, frameId, args, frameUrl) {
     let state = null;
     if (/^https:\/\/([^/]+\.)?xiaohongshu\.com\//.test(frameUrl || "")) {
       state = await inject(tab.id, frameId, momentoReadXiaohongshuNote, [], "MAIN");
+    } else if (/^https:\/\/(x|twitter)\.com\//.test(frameUrl || "")) {
+      state = { xVideos: await inject(tab.id, frameId, momentoReadXVideos, [], "MAIN") };
     }
     const result = await inject(tab.id, frameId, momentoCollect, [{ ...args, state }]);
     if (result) {
@@ -125,7 +150,8 @@ async function openPanel(tab) {
   }
   let result;
   try {
-    result = await inject(tab.id, 0, momentoCollect, [{ page: true }]);
+    const state = /^https:\/\/(x|twitter)\.com\//.test(tab.url || "") ? { xVideos: await inject(tab.id, 0, momentoReadXVideos, [], "MAIN") } : null;
+    result = await inject(tab.id, 0, momentoCollect, [{ page: true, state }]);
   } catch (error) {
     console.warn("Momento: 这个页面不能打开批量保存", error?.message || error);
     showToast(tab.id, t("errPage"), "error");

@@ -17,6 +17,12 @@
   "menuSavePage": {
     "message": "Save Images on This Page…"
   },
+  "menuScreenshot": {
+    "message": "Save Screenshot of Visible Area"
+  },
+  "errScreenshot": {
+    "message": "Couldn’t capture this page. Browser pages and the Chrome Web Store can’t be captured."
+  },
   "saving": {
     "message": "Saving…"
   },
