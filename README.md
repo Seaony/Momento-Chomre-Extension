@@ -65,3 +65,7 @@ X 的视频会存最高清的 mp4。其他分片播放的视频（B 站、抖音
 Chrome 要加载的是包含 `manifest.json` 的 `extension` 文件夹，不是外层文件夹，也不是 zip 文件。
 
 手动安装的扩展不会自动更新。升级时下载新的 Release 包，移除旧扩展，再按上面的步骤重新加载新的 `extension` 文件夹。
+
+## 许可证
+
+[MIT](LICENSE)
