@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "Momento Image Saver"
+    "message": "Momento"
   },
   "extDescription": {
     "message": "右键把网页上的图片和视频存进本机的 Momento。"
@@ -133,5 +133,44 @@
   },
   "skippedStreams": {
     "message": "$1 个分片播放的视频没存上"
+  },
+  "optionsTitle": {
+    "message": "设置"
+  },
+  "optionsLanguage": {
+    "message": "语言"
+  },
+  "optionsLanguageAuto": {
+    "message": "跟随浏览器"
+  },
+  "optionsChecking": {
+    "message": "正在检查 Momento…"
+  },
+  "optionsConnected": {
+    "message": "已连接 Momento $1"
+  },
+  "optionsUnreachable": {
+    "message": "连不上 Momento"
+  },
+  "optionsUnreachableHint": {
+    "message": "打开 Momento，在设置的「浏览器扩展」页打开「允许浏览器扩展导入」。"
+  },
+  "optionsRejected": {
+    "message": "Momento 拒绝了请求：$1"
+  },
+  "optionsRecheck": {
+    "message": "重新检查"
+  },
+  "optionsStorageFailed": {
+    "message": "设置读写失败：$1"
+  },
+  "langCode": {
+    "message": "zh-CN"
+  },
+  "optionsNotMomento": {
+    "message": "端口 47641 被其他程序占用"
+  },
+  "postButtonTitle": {
+    "message": "把这一帖全部保存到 Momento"
   }
 }

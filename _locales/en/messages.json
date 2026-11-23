@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "Momento Image Saver"
+    "message": "Momento"
   },
   "extDescription": {
     "message": "Save images and videos from web pages to Momento on your computer."
@@ -133,5 +133,44 @@
   },
   "skippedStreams": {
     "message": "$1 streamed videos couldn't be saved"
+  },
+  "optionsTitle": {
+    "message": "Settings"
+  },
+  "optionsLanguage": {
+    "message": "Language"
+  },
+  "optionsLanguageAuto": {
+    "message": "Same as Browser"
+  },
+  "optionsChecking": {
+    "message": "Checking Momento…"
+  },
+  "optionsConnected": {
+    "message": "Connected to Momento $1"
+  },
+  "optionsUnreachable": {
+    "message": "Can't reach Momento"
+  },
+  "optionsUnreachableHint": {
+    "message": "Open Momento and turn on Allow Browser Extension Imports in Settings › Browser Extension."
+  },
+  "optionsRejected": {
+    "message": "Momento refused the request: $1"
+  },
+  "optionsRecheck": {
+    "message": "Check Again"
+  },
+  "optionsStorageFailed": {
+    "message": "Couldn't access settings: $1"
+  },
+  "langCode": {
+    "message": "en"
+  },
+  "optionsNotMomento": {
+    "message": "Port 47641 is in use by another app"
+  },
+  "postButtonTitle": {
+    "message": "Save Entire Post to Momento"
   }
 }

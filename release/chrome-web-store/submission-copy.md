@@ -1,4 +1,4 @@
-# Momento Image Saver：Chrome 应用商店上架文案
+# Momento 浏览器扩展：Chrome 应用商店上架文案
 
 更新：2026-11-15，按 0.2.0 的实际功能核对过。
 
@@ -16,11 +16,11 @@
 
 ### 详细说明
 
-Momento Image Saver 是 Momento 的浏览器入口。看到想留的图片，不用先下载再拖进去，在网页上右键选「保存到 Momento」就行。需要先在电脑上打开 Momento。
+这个扩展是 Momento 的浏览器入口。看到想留的图片，不用先下载再拖进去，在网页上右键选「保存到 Momento」就行。需要先在电脑上打开 Momento。
 
 保存单张图片或视频：在图片、视频或图片链接上右键，选「保存到 Momento」。扩展会尽量找原图，比如 srcset 里最大的一档、页面数据里的原图地址，以及知乎、豆瓣、Lofter、B 站、Unsplash、Pexels、ArtStation、Flickr 等网站的原图规则。Instagram 和小红书的图片上盖着透明层，扩展会按右键的位置找到下面那张图。
 
-保存一整帖：在小红书、Instagram、Pixiv、微博、X、Pinterest、Behance、Dribbble、站酷、花瓣、ArtStation 的帖子上右键，选「保存这一帖全部」，图片、实况照片和 mp4 视频一起存。
+保存一整帖：在小红书、Instagram、Pixiv、微博、X、Pinterest、Behance、Dribbble、站酷、花瓣、ArtStation 的帖子上右键，选「保存这一帖全部」，图片、实况照片和 mp4 视频一起存。小红书笔记的日期下面、Instagram 帖子的书签旁边还有一个保存按钮，点一下就存整帖。
 
 批量保存整页：点工具栏上的图标，打开批量面板，按尺寸和格式筛选，可以 Shift 连选，选好后一次存进 Momento。
 
@@ -76,15 +76,17 @@ Productivity（效率）
 
 在用户操作后的当前页面里运行扩展自带的脚本：找原图地址、读取帖子里的图片列表、显示批量面板和保存结果提示。网页里 `blob:` 地址的文件只有页面自己能读，也通过这个脚本读出来交给 Momento。扩展不加载远程代码，也不改网页本身的功能。
 
+#### `storage`
+
+只在本机保存一项设置：用户在扩展设置页里选的界面语言。不保存浏览记录、图片地址或保存记录。
+
 #### `http://127.0.0.1:47641/*`
 
 把用户选中的内容发给本机 Momento 的导入接口 `http://127.0.0.1:47641/api/v1/`。`127.0.0.1` 是本机地址，请求不会离开这台电脑。
 
-#### 内容脚本（Instagram、小红书）
+#### `https://www.instagram.com/*`、`https://www.xiaohongshu.com/*`（含不带 www 的地址）和这两个网站上的内容脚本
 
-如果后台要求说明内容脚本的站点范围，用这段：
-
-Instagram 和小红书的图片上盖着透明层，右键时浏览器拿不到图片地址。扩展在这两个网站上放了一个很小的内容脚本，只记下最后一次右键点到的元素，用户选择保存时据此找到下面的图片。它不读取页面内容，不发送任何数据。
+扩展在 Instagram 帖子的书签旁边、小红书笔记的日期下面放一个「保存到 Momento」按钮。用户点这个按钮时，扩展要在当前页面里找出这一帖的图片和视频；点网页里的按钮不像点右键菜单那样会临时给扩展这个页面的权限，所以要声明这两个网站。另外这两个网站的图片上盖着透明层，右键时浏览器拿不到图片地址，内容脚本会记下最后一次右键点到的元素，用户选择保存时据此找到下面的图片。只有用户点按钮或选右键菜单时才去找图，不读取其他页面内容，不发送任何数据给扩展开发者。
 
 ### 数据使用声明
 
@@ -111,7 +113,7 @@ Instagram 和小红书的图片上盖着透明层，右键时浏览器拿不到�
 
 #### 数据存储
 
-- 扩展自己不存任何东西，没有使用 Chrome storage，不留保存记录。
+- 扩展只用 Chrome storage 在本机保存用户选的界面语言，不保存浏览记录、图片地址或保存记录。
 - 存进来的图片由本机 Momento 放在用户自己的图库里。
 
 #### 出售与共享
@@ -122,11 +124,11 @@ Instagram 和小红书的图片上盖着透明层，右键时浏览器拿不到�
 
 ## 隐私政策（英文，发布到支持网址）
 
-### Momento Image Saver Privacy Policy
+### Momento Chrome Extension Privacy Policy
 
 Last updated: 2026-11-15
 
-Momento Image Saver is a Chrome extension that saves images and videos from web pages into the Momento app running on your own computer.
+The Momento Chrome extension saves images and videos from web pages into the Momento app running on your own computer.
 
 #### What the extension does
 
@@ -149,7 +151,7 @@ The extension does not collect your name, email address, account identifiers, ph
 
 #### Nothing leaves your computer
 
-The extension sends data only to the Momento app at `127.0.0.1` on the same computer. It does not upload anything to our servers or to any third party. The extension itself stores nothing.
+The extension sends data only to the Momento app at `127.0.0.1` on the same computer. It does not upload anything to our servers or to any third party. The extension itself only stores your chosen interface language on this computer; it keeps no browsing, image or save history.
 
 #### No sale or sharing
 
@@ -169,7 +171,7 @@ For privacy or support questions:
 
 ### Summary
 
-Momento Image Saver is a Manifest V3 extension with one purpose: save images, videos or a screenshot the user picks on a web page into the Momento desktop app on the same computer.
+The Momento Chrome extension is a Manifest V3 extension with one purpose: save images, videos or a screenshot the user picks on a web page into the Momento desktop app on the same computer.
 
 All saves go to `http://127.0.0.1:47641/api/v1/`, which is served by the local Momento app. Nothing is sent to a remote server.
 
@@ -191,6 +193,14 @@ All saves go to `http://127.0.0.1:47641/api/v1/`, which is served by the local M
 3. All images in the post appear in Momento.
 
 On Instagram an invisible layer covers the image, so the extension remembers where the user right-clicked and finds the image under that point.
+
+### Save Button in Instagram and Xiaohongshu Posts
+
+1. Open an Instagram post (or the home feed), or a Xiaohongshu note.
+2. On Instagram, click the Momento icon left of the bookmark icon. On Xiaohongshu, click "Save to Momento" under the note's date.
+3. All images and videos in that post appear in Momento.
+
+This button is why the extension asks for access to instagram.com and xiaohongshu.com: clicking a button on the page does not grant the temporary `activeTab` access that the context menu does.
 
 ### Save Images on This Page
 

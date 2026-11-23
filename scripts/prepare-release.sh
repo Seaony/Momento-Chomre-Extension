@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_NAME="Momento Image Saver"
+PROJECT_NAME="Momento 浏览器扩展"
 MANIFEST_FILE="manifest.json"
 DIST_DIR="dist"
 
@@ -133,9 +133,9 @@ mkdir -p "$MANUAL_ROOT/extension"
 unzip -q "$PACKAGE_PATH" -d "$MANUAL_ROOT/extension"
 
 cat > "$MANUAL_ROOT/README.md" <<EOF
-# Momento Image Saver 手动安装说明
+# Momento 浏览器扩展手动安装说明
 
-这个包用于在不提交 Chrome Web Store 审核的情况下，让用户手动安装 Momento Image Saver Chrome 扩展。
+这个包用于在不提交 Chrome Web Store 审核的情况下，让用户手动安装 Momento Chrome 扩展。
 
 ## 安装步骤
 
@@ -144,7 +144,7 @@ cat > "$MANUAL_ROOT/README.md" <<EOF
 3. 打开右上角的 \`Developer mode\` / \`开发者模式\`。
 4. 点击 \`Load unpacked\` / \`加载已解压的扩展程序\`。
 5. 选择解压出来的 \`extension\` 文件夹。
-6. 确认扩展列表中出现 \`Momento Image Saver\`。
+6. 确认扩展列表中出现 \`Momento\`。
 7. 启动本机 Momento。
 8. 在网页图片上右键，选择 \`保存到 Momento\`（英文界面是 \`Save to Momento\`）。
 

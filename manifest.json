@@ -21,13 +21,22 @@
       "128": "icons/icon-128.png"
     }
   },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "permissions": [
     "activeTab",
     "scripting",
-    "contextMenus"
+    "contextMenus",
+    "storage"
   ],
   "host_permissions": [
-    "http://127.0.0.1:47641/*"
+    "http://127.0.0.1:47641/*",
+    "https://instagram.com/*",
+    "https://www.instagram.com/*",
+    "https://xiaohongshu.com/*",
+    "https://www.xiaohongshu.com/*"
   ],
   "content_scripts": [
     {
@@ -38,7 +47,8 @@
         "https://www.xiaohongshu.com/*"
       ],
       "js": [
-        "src/context.js"
+        "src/context.js",
+        "src/post-button.js"
       ],
       "run_at": "document_start"
     }

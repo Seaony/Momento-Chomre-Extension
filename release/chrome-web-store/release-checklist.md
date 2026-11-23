@@ -1,6 +1,6 @@
 # Chrome Web Store Release Checklist
 
-This checklist is for publishing `Momento Image Saver` from this repository. Keep the release package scoped to the extension runtime files and prepare review notes that explain the narrow local-bridge behavior clearly.
+This checklist is for publishing the Momento Chrome extension from this repository. Keep the release package scoped to the extension runtime files and prepare review notes that explain the narrow local-bridge behavior clearly.
 
 ## Production ZIP Contents
 
@@ -16,9 +16,13 @@ Files that should be in the ZIP:
 
 - `manifest.json`
 - `background.js`
+- `options.html`
+- `src/i18n.js`
+- `src/options.js`
 - `src/collect.js`
 - `src/ui.js`
 - `src/context.js`
+- `src/post-button.js`
 - `_locales/en/messages.json`
 - `_locales/zh_CN/messages.json`
 - `_locales/ja/messages.json`
@@ -51,15 +55,15 @@ The archive should contain only the production files above. Do not upload an unp
 Current manifest facts to verify before release:
 
 - `manifest_version` is `3`.
-- `name` is `Momento Image Saver`.
+- `name` is `Momento`.
 - `description` says the extension imports images into Momento.
 - `version` is bumped for every uploaded package.
 - `minimum_chrome_version` is `88`.
 - `background.service_worker` is `background.js`.
 - `icons` points to packaged PNG files under `icons/`.
-- `permissions` is limited to `activeTab`, `scripting`, and `contextMenus`.
-- `host_permissions` is limited to `http://127.0.0.1:47641/*`.
-- `content_scripts` are limited to Instagram and Xiaohongshu (one tiny script that records the right-click target).
+- `permissions` is limited to `activeTab`, `scripting`, `contextMenus`, and `storage`.
+- `host_permissions` is limited to `http://127.0.0.1:47641/*` plus Instagram and Xiaohongshu (the same sites as the content scripts).
+- `content_scripts` are limited to Instagram and Xiaohongshu (one script records the right-click target, one adds the in-post save button).
 - `key` pins the extension ID to `bdholohelelbeepbpdapldbibidacaoo`, the only ID Momento's local API accepts.
 
 Permission explanation risks:
@@ -67,23 +71,24 @@ Permission explanation risks:
 - `contextMenus`: required to add the user-invoked right-click actions `Save to Momento`, `Save Entire Post to Momento` and `Save Images on This Page…`.
 - `activeTab`: required for temporary access to the active page after the user right-clicks or clicks the toolbar button, so the extension can find the clicked image or video, or list the page's images.
 - `scripting`: required to run the packaged page scripts that find media, show the save status, and open the batch-save panel, only after a user action.
+- `storage`: stores only the interface language chosen on the extension's options page.
 - `host_permissions` for `http://127.0.0.1:47641/*`: required to send selected media to the locally running Momento app. This is loopback-only and should not be described as a remote web service.
-- Instagram and Xiaohongshu content script records only the element under the last right-click, because both sites cover images with overlays.
+- Instagram and Xiaohongshu content scripts record only the element under the last right-click (both sites cover images with overlays) and add a save button to posts. Clicking that button does not grant `activeTab`, so the extension needs host access to these two sites to collect the post's media.
 
 Review notes to prepare:
 
 - Single purpose: save user-selected web images from Chrome into the local Momento desktop app.
-- User action boundary: imports happen only after the user chooses the extension's context menu item.
+- User action boundary: imports happen only after the user chooses the extension's context menu item, clicks the toolbar icon and saves from the panel, or clicks the save button the extension adds to an Instagram or Xiaohongshu post.
 - Data sent by the extension: the selected image or video URL (or the file itself for `blob:`/`data:` media), the source page URL, a suggested Referer, and the post title when the site provides one, posted to `http://127.0.0.1:47641/api/v1/`.
 - Data destination: local loopback Momento app on the same machine; the extension does not send data to a third-party server.
 - Remote code: select `No remote code`; all executed scripts are packaged in the extension.
-- Do not overstate storage behavior: this extension does not store user data in Chrome storage.
+- Storage behavior: Chrome storage holds only the chosen interface language; no browsing, image or save history.
 
 High-risk wording to avoid in the listing:
 
 - Do not imply the extension can download every private or authenticated image. Momento may fail when the image requires Chrome-only cookies or page session state.
 - Do not describe the local HTTP endpoint as cloud sync.
-- Do not claim automatic background saving. The current behavior is context-menu initiated.
+- Do not claim automatic background saving. Every save starts from a user click: the context menu, the toolbar panel, or the in-post save button.
 
 ## Chrome Web Store Required Materials
 
@@ -135,6 +140,8 @@ Load the unpacked extension from `/Users/seaony/code/Momento-Chrome`, then verif
 - With Momento stopped, the toast says Momento can't be reached; no tabs open and nothing downloads.
 - `data:` and `blob:` images are uploaded as files; `blob:` videos (segmented streams) show the "can't be saved yet" message.
 - On Instagram, right-click over an image or overlay, choose `Save to Momento`, then `Save Entire Post to Momento` on a carousel and a Reel; logged in and logged out.
+- On Instagram, click the save button left of the bookmark in the feed and on a post page; each saves only that post.
+- On a Xiaohongshu note, click the save button under the date; switch notes and confirm the button follows.
 - On a Xiaohongshu note, save one image, then the whole note; Live photos save the image and its video; video notes save the video; notes viewed earlier in the same tab are not included.
 - On Pixiv and Weibo posts, save one image and the entire post (Weibo needs a logged-in session).
 - On Behance, Dribbble, Zcool, Huaban, Pinterest and X, save one image and the entire post; check that originals are saved, not thumbnails.
@@ -177,5 +184,5 @@ Load the unpacked extension from `/Users/seaony/code/Momento-Chrome`, then verif
 - Images requiring Chrome-only cookies, session state, or private CDN authorization may fail when Momento downloads them.
 - Instagram support depends on the current DOM under the user's last right-click point and may break if Instagram changes overlays or image structure.
 - Xiaohongshu support depends on note detail page structure and `window.__INITIAL_STATE__`; DOM fallback is used when initial state extraction is unavailable.
-- The extension creates a transient Xiaohongshu toast for batch status; it does not add a persistent UI, options page, storage, tracking, analytics, ads, or notifications.
+- The extension creates a transient Xiaohongshu toast for batch status; it does not add tracking, analytics, ads, or notifications.
 - The extension currently has no cloud backend and no account system.

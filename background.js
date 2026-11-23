@@ -1,5 +1,5 @@
-/* global momentoCollect, momentoReadXiaohongshuNote, momentoReadXVideos, momentoReadBlob, momentoToast, momentoPanel */
-importScripts("src/collect.js", "src/ui.js");
+/* global momentoCollect, momentoReadXiaohongshuNote, momentoReadXVideos, momentoReadBlob, momentoToast, momentoPanel, momentoLoadLanguage, t */
+importScripts("src/i18n.js", "src/collect.js", "src/ui.js");
 
 const MOMENTO = "http://127.0.0.1:47641";
 const MENU_SAVE = "momento-save";
@@ -28,11 +28,27 @@ const MAX_PAGE_FILE = 200 * 1024 * 1024;
 const POLL_INTERVAL = 500;
 const POLL_LIMIT = 30 * 60 * 1000;
 
-function t(key, ...substitutions) {
-  return chrome.i18n.getMessage(key, substitutions.map(String)) || key;
+// 后台每次被唤醒都先读一遍语言设置，用到文案的地方都等它读完。
+let languageReady = loadLanguage();
+
+function loadLanguage() {
+  return momentoLoadLanguage()
+    .then(() => chrome.action.setTitle({ title: t("actionTitle") }))
+    .catch((error) => {
+      console.error("Momento: 读取语言设置失败，先用浏览器语言", error);
+    });
 }
 
-function createMenus() {
+// 设置页换了语言：重新读文案，右键菜单跟着换。
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.language) {
+    languageReady = loadLanguage();
+    createMenus();
+  }
+});
+
+async function createMenus() {
+  await languageReady;
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({ id: MENU_SAVE, title: t("menuSave"), contexts: ["image", "video", "link", "page"] });
     chrome.contextMenus.create({ id: MENU_POST, title: t("menuSavePost"), contexts: ["image", "video", "link", "page"], documentUrlPatterns: POST_PATTERNS });
@@ -45,26 +61,42 @@ chrome.runtime.onInstalled.addListener(createMenus);
 chrome.runtime.onStartup.addListener(createMenus);
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  handleMenu(info, tab).catch((error) => {
+  languageReady.then(() => handleMenu(info, tab)).catch((error) => {
     console.error("Momento: 保存失败", error);
     showToast(tab?.id, t("errGeneric", error?.message || String(error)), "error");
   });
 });
 
 chrome.action.onClicked.addListener((tab) => {
-  openPanel(tab).catch((error) => console.error("Momento: 打不开批量保存面板", error));
+  languageReady.then(() => openPanel(tab)).catch((error) => console.error("Momento: 打不开批量保存面板", error));
 });
 
-// 批量保存面板选好后发回来的。只接受本扩展注入的脚本发来的消息。
-chrome.runtime.onMessage.addListener((message, sender) => {
-  if (message?.type !== "momento:save-items" || sender.id !== chrome.runtime.id || !sender.tab?.id) {
+// 页面里发回来的：批量保存面板选好的图、帖子上「保存到 Momento」按钮的点击和它要显示的文字。
+// 只接受本扩展的脚本发来的消息。
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (sender.id !== chrome.runtime.id || !sender.tab?.id) {
     return false;
   }
-  const items = Array.isArray(message.items) ? message.items.filter((item) => typeof item?.url === "string") : [];
-  saveItems(sender.tab.id, sender.frameId ?? 0, items, { pageUrl: sender.url || sender.tab.url, title: "" }).catch((error) => {
-    console.error("Momento: 批量保存失败", error);
-    showToast(sender.tab.id, t("errGeneric", error?.message || String(error)), "error");
-  });
+  const tabId = sender.tab.id;
+  const failed = (error) => {
+    console.error("Momento: 保存失败", error);
+    showToast(tabId, t("errGeneric", error?.message || String(error)), "error");
+  };
+  if (message?.type === "momento:save-items") {
+    const items = Array.isArray(message.items) ? message.items.filter((item) => typeof item?.url === "string") : [];
+    languageReady.then(() => saveItems(tabId, sender.frameId ?? 0, items, { pageUrl: sender.url || sender.tab.url, title: "" })).catch(failed);
+  } else if (message?.type === "momento:save-post") {
+    const pageUrl = sender.url || sender.tab.url;
+    languageReady.then(() => collectAndSave(sender.tab, sender.frameId ?? 0, { srcUrl: null, linkUrl: null, mediaType: null, post: true }, pageUrl, pageUrl)).catch(failed);
+  } else if (message?.type === "momento:post-button-text") {
+    Promise.all([languageReady, postButtonIcon()])
+      .then(([, icon]) => sendResponse({ label: t("menuSave"), title: t("postButtonTitle"), icon }))
+      .catch((error) => {
+        console.error("Momento: 读不到帖子按钮的图标", error);
+        sendResponse(null);
+      });
+    return true;
+  }
   return false;
 });
 
@@ -80,18 +112,33 @@ async function handleMenu(info, tab) {
     await saveScreenshot(tab);
     return;
   }
-  const frameId = info.frameId ?? 0;
-  const result = await collect(tab, frameId, {
+  await collectAndSave(tab, info.frameId ?? 0, {
     srcUrl: info.srcUrl || null,
     linkUrl: info.linkUrl || null,
     mediaType: info.mediaType || null,
     post: info.menuItemId === MENU_POST
-  }, info.frameUrl || info.pageUrl || tab.url);
+  }, info.frameUrl || info.pageUrl || tab.url, info.pageUrl || tab.url);
+}
+
+// 帖子上保存按钮用的 Momento 图标，转成 data: 地址交给页面里的按钮。
+let buttonIcon = null;
+function postButtonIcon() {
+  buttonIcon ||= fetch(chrome.runtime.getURL("icons/icon-128.png"))
+    .then((response) => response.arrayBuffer())
+    .then((buffer) => `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(buffer)))}`);
+  return buttonIcon;
+}
+
+// 右键菜单和帖子上的按钮共用：在页面里找要存的东西，交给 Momento。
+async function collectAndSave(tab, frameId, args, frameUrl, pageUrl) {
+  // 取图要等网站接口（Instagram 慢时要一两秒），先告诉用户已经在存，免得以为没点上又点一次。
+  await showToast(tab.id, t("saving"), "progress");
+  const result = await collect(tab, frameId, args, frameUrl);
   if (result.error) {
     showToast(tab.id, reason(result.error), "error");
     return;
   }
-  await saveItems(tab.id, frameId, result.items, { pageUrl: result.pageUrl || info.pageUrl || tab.url, title: "", skippedStreams: result.skippedStreams || 0 });
+  await saveItems(tab.id, frameId, result.items, { pageUrl: result.pageUrl || pageUrl, title: "", skippedStreams: result.skippedStreams || 0 });
 }
 
 // 截当前标签页的可见区域（点菜单时 activeTab 给了权限），当成网页里的文件上传给 Momento。

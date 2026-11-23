@@ -15,9 +15,13 @@ const manifest = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
 const requiredFiles = [
   "manifest.json",
   "background.js",
+  "options.html",
+  "src/i18n.js",
+  "src/options.js",
   "src/collect.js",
   "src/ui.js",
   "src/context.js",
+  "src/post-button.js",
   "_locales/en/messages.json",
   "_locales/zh_CN/messages.json",
   "_locales/ja/messages.json",
@@ -37,6 +41,7 @@ mkdir -p "$OUTPUT_DIR"
 zip -qr "$OUTPUT_DIR/$PACKAGE_NAME" \
   manifest.json \
   background.js \
+  options.html \
   src \
   _locales \
   icons

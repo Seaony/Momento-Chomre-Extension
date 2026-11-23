@@ -225,6 +225,8 @@ async function momentoCollect(args) {
   let variantCache = null;
   // 整帖里存不了的分片视频个数，保存完一起告诉用户。
   let skippedStreams = 0;
+  // 素材在 Momento 里记的来源页。Instagram 首页信息流里存的是某一帖，来源记成那一帖的地址，不记首页。
+  let sourceUrl = location.href;
   const variants = () => (variantCache ||= embeddedVariants(doc, base));
 
   // 一张图能拿到的最大地址：srcset、<picture>、懒加载属性、外层指向图片的链接，再去页面数据和规则表里升档。
@@ -513,7 +515,9 @@ async function momentoCollect(args) {
 
   function instagramShortcode() {
     const target = targetElement();
-    const link = target?.closest("a[href*='/p/'], a[href*='/reel/']")?.getAttribute("href") || location.pathname;
+    const selector = "a[href*='/p/'], a[href*='/reel/']";
+    // 首页信息流里点的是图片或操作栏上的按钮，不在链接里：用同一帖（article）里的帖子链接。
+    const link = target?.closest(selector)?.getAttribute("href") || target?.closest("article")?.querySelector(selector)?.getAttribute("href") || location.pathname;
     return /\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/.exec(link)?.[1] || null;
   }
 
@@ -552,6 +556,7 @@ async function momentoCollect(args) {
     if (!shortcode) {
       return null;
     }
+    sourceUrl = `${location.origin}/p/${shortcode}/`;
     let media = null;
     try {
       const response = await fetch(`/api/v1/media/${instagramMediaId(shortcode)}/info/`, {
@@ -762,7 +767,7 @@ async function momentoCollect(args) {
       item.referer ||= referer;
       item.upload = !isHttp(item.url);
     }
-    return { items: unique, error: unique.length === 0 ? (skippedStreams > 0 ? "stream" : "nothing") : null, skippedStreams, pageUrl: location.href };
+    return { items: unique, error: unique.length === 0 ? (skippedStreams > 0 ? "stream" : "nothing") : null, skippedStreams, pageUrl: sourceUrl };
   } catch (error) {
     return { items: [], error: error.code || "nothing", pageUrl: location.href };
   }

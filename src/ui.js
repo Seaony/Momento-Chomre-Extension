@@ -85,11 +85,13 @@ function momentoPanel(args) {
     button:focus-visible, select:focus-visible { outline: 2px solid #6553F0; outline-offset: 1px; }
     .cell:focus-visible { outline: 2px solid #9D99AE; outline-offset: 2px; }
     .chip[aria-pressed="false"] { background: transparent; color: #77738A; }
+    .formats { display: flex; gap: 8px; }
     .chip { text-transform: uppercase; font-size: 11px; letter-spacing: .02em; }
     .icon-button { width: 28px; padding: 0; display: grid; place-items: center; background: transparent; border-color: transparent; }
     .icon-button svg { width: 16px; height: 16px; }
+    /* 格子带 overflow: hidden，行高不会按正方形自动撑开；不写 max-content 的话图一多，行就被压扁、图叠在一起。 */
     .grid { flex: 1; overflow: auto; padding: 4px 20px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-      gap: 12px; align-content: start; }
+      gap: 12px; align-content: start; grid-auto-rows: max-content; }
     .cell { position: relative; border-radius: 10px; background: #F1EFF8; aspect-ratio: 1; overflow: hidden; cursor: pointer;
       border: 2px solid transparent; }
     .cell img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }

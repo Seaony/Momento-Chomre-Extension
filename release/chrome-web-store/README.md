@@ -1,6 +1,6 @@
-# Momento Image Saver Chrome Web Store 审核材料
+# Momento 浏览器扩展 Chrome Web Store 审核材料
 
-这个目录保存 Momento Image Saver 提交 Chrome Web Store 审核时需要用到的材料。
+这个目录保存 Momento 浏览器扩展提交 Chrome Web Store 审核时需要用到的材料。
 
 ## 文件
 
@@ -31,7 +31,8 @@ zip 里应该只包含：
 
 - `manifest.json`
 - `background.js`
-- `src/`（collect.js、ui.js、context.js）
+- `options.html`
+- `src/`（collect.js、ui.js、context.js、post-button.js、i18n.js、options.js）
 - `_locales/`
 - `icons/`
 

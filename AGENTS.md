@@ -24,7 +24,7 @@
 
 ## Project Overview
 
-Momento Image Saver 是 Chrome Manifest V3 扩展，用于把网页图片发送到本机 Momento：
+Momento 浏览器扩展是 Chrome Manifest V3 扩展，用于把网页图片发送到本机 Momento：
 
 ```text
 http://127.0.0.1:47641/api/v1/status        查版本和能力
@@ -41,6 +41,7 @@ http://127.0.0.1:47641/api/v1/import/image  旧版 Momento 的同步接口，没
 - `src/collect.js`：注入页面找图和视频。通用规则（srcset、页面数据里的原图、图床规则表、同结构整帖）为主，小红书、Instagram、Pixiv、微博四个平台单独适配；X 的视频在页面主环境里从 React 组件属性读 mp4（`momentoReadXVideos`）。注入的函数必须自成一体。
 - `src/ui.js`：注入页面的保存提示和批量保存面板。
 - `src/context.js`：Instagram、小红书记下右键点到的元素。
+- `src/post-button.js`：在小红书笔记日期下面、Instagram 书签左边放「保存到 Momento」按钮，点了让后台按整帖保存。
 - `_locales/`：中英日文案，key 和占位符必须齐全。
 - `test/run-tests.js`：无依赖 Node 测试。
 - `scripts/package-extension.sh`：Chrome Web Store zip 打包。

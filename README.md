@@ -1,7 +1,7 @@
 <div align="center">
   <br />
-  <img src="icons/icon-128.png" width="112" alt="Momento Image Saver Icon" />
-  <h1>Momento Image Saver</h1>
+  <img src="icons/icon-128.png" width="112" alt="Momento Icon" />
+  <h1>Momento</h1>
   <p><strong>把浏览器里的图片，直接保存到本机 Momento。</strong></p>
   <p>
     一个轻量的 Chrome 扩展，只在你主动右键保存时工作，
@@ -24,7 +24,7 @@
 
 ## 它做什么
 
-Momento Image Saver 是 Momento 的浏览器入口。你在网页上看到想收藏的图片时，不需要先下载到本地再手动导入，直接从 Chrome 右键菜单发送给 Momento。
+这个扩展是 Momento 的浏览器入口。你在网页上看到想收藏的图片时，不需要先下载到本地再手动导入，直接从 Chrome 右键菜单发送给 Momento。
 
 <table>
   <tr>
@@ -34,7 +34,7 @@ Momento Image Saver 是 Momento 的浏览器入口。你在网页上看到想收
     </td>
     <td width="33%">
       <h3>整帖保存</h3>
-      <p>在小红书、Instagram、Pixiv、微博、Behance、Dribbble、站酷、花瓣、Pinterest、X 的帖子上右键，选择 <strong>保存这一帖全部</strong>，图片、实况和 mp4 视频一起存。</p>
+      <p>在小红书、Instagram、Pixiv、微博、Behance、Dribbble、站酷、花瓣、Pinterest、X 的帖子上右键，选择 <strong>保存这一帖全部</strong>，图片、实况和 mp4 视频一起存。小红书笔记的日期下面、Instagram 帖子的书签旁边有保存按钮，点一下就行。</p>
     </td>
     <td width="33%">
       <h3>批量保存整页</h3>
@@ -59,7 +59,7 @@ X 的视频会存最高清的 mp4。其他分片播放的视频（B 站、抖音
 4. 打开右上角的“开发者模式”。
 5. 点击“加载已解压的扩展程序”。
 6. 选择解压目录里的 `extension` 文件夹。
-7. 确认扩展列表里出现 **Momento Image Saver**。
+7. 确认扩展列表里出现 **Momento**。
 8. 启动 Momento，然后在网页上右键保存，或点工具栏图标批量保存。
 
 Chrome 要加载的是包含 `manifest.json` 的 `extension` 文件夹，不是外层文件夹，也不是 zip 文件。

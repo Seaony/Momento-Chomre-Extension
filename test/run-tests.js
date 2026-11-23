@@ -11,9 +11,10 @@ function testManifestAndFiles() {
   const manifest = JSON.parse(read("manifest.json"));
   assert.strictEqual(manifest.manifest_version, 3);
   assert.ok(manifest.key, "manifest 要带固定公钥，扩展 ID 才和 Momento 放行的一致");
-  assert.deepStrictEqual(manifest.permissions, ["activeTab", "scripting", "contextMenus"]);
-  assert.deepStrictEqual(manifest.host_permissions, ["http://127.0.0.1:47641/*"]);
-  for (const file of [...Object.values(manifest.icons), manifest.background.service_worker, ...manifest.content_scripts.flatMap((c) => c.js)]) {
+  assert.deepStrictEqual(manifest.permissions, ["activeTab", "scripting", "contextMenus", "storage"]);
+  // Instagram、小红书要能在点帖子上的按钮时注入取图脚本（点按钮不像右键菜单那样临时给权限）；和内容脚本的站点一致，不多要。
+  assert.deepStrictEqual(manifest.host_permissions, ["http://127.0.0.1:47641/*", ...manifest.content_scripts[0].matches]);
+  for (const file of [...Object.values(manifest.icons), manifest.background.service_worker, manifest.options_ui.page, ...manifest.content_scripts.flatMap((c) => c.js)]) {
     assert.ok(fs.existsSync(path.join(rootDir, file)), `缺文件 ${file}`);
   }
   for (const match of read("background.js").matchAll(/importScripts\(([^)]*)\)/g)) {
@@ -26,7 +27,7 @@ function testManifestAndFiles() {
 function testLocalesMatch() {
   const locales = ["en", "zh_CN", "ja"].map((locale) => [locale, JSON.parse(read(`_locales/${locale}/messages.json`))]);
   const [, english] = locales[0];
-  const used = new Set([...read("background.js").matchAll(/\bt\("([A-Za-z]+)"/g)].map((m) => m[1]));
+  const used = new Set([...(read("background.js") + read("src/options.js")).matchAll(/\bt\("([A-Za-z]+)"/g), ...read("options.html").matchAll(/data-text="([A-Za-z]+)"/g)].map((m) => m[1]));
   for (const name of ["extName", "extDescription", "actionTitle"]) {
     used.add(name);
   }
@@ -134,16 +135,23 @@ function testXiaohongshuReadsCurrentNoteOnly() {
 }
 
 // 后台脚本：用假的 chrome 和 fetch 跑一遍保存流程。
-function loadBackground(routes) {
+function loadBackground(routes, storage = {}, pageScripts = {}) {
   const toasts = [];
   const requests = [];
+  const injected = [];
+  const listeners = {};
   const chrome = {
     i18n: { getMessage: (key, subs) => [key, ...(subs || [])].join("|") },
-    runtime: { id: "self", onInstalled: { addListener() {} }, onStartup: { addListener() {} }, onMessage: { addListener() {} }, getPlatformInfo: async () => ({}) },
+    storage: { local: { get: async () => storage }, onChanged: { addListener() {} } },
+    runtime: { id: "self", getURL: (file) => `ext:/${file}`, onInstalled: { addListener() {} }, onStartup: { addListener() {} }, onMessage: { addListener: (fn) => (listeners.message = fn) }, getPlatformInfo: async () => ({}) },
     contextMenus: { removeAll: (done) => done(), create() {}, onClicked: { addListener() {} } },
     action: { onClicked: { addListener() {} }, setBadgeText: async () => {}, setBadgeBackgroundColor: async () => {}, setTitle: async () => {} },
     scripting: {
-      executeScript: async ({ func, args }) => {
+      executeScript: async ({ func, args, world }) => {
+        injected.push({ name: func.name, args, world });
+        if (pageScripts[func.name]) {
+          return [{ result: pageScripts[func.name](...(args || [])) }];
+        }
         if (func.name === "momentoToast") {
           toasts.push(args[0]);
           return [{ result: undefined }];
@@ -156,6 +164,14 @@ function loadBackground(routes) {
     }
   };
   const fetch = async (url, options = {}) => {
+    if (url.endsWith(".png")) {
+      const bytes = fs.readFileSync(path.join(rootDir, url.slice(5)));
+      return { ok: true, status: 200, arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length) };
+    }
+    if (url.startsWith("ext:/")) {
+      const body = JSON.parse(read(url.slice(5)));
+      return { ok: true, status: 200, json: async () => body };
+    }
     requests.push({ url, options });
     const handler = routes(url, options, requests);
     if (handler instanceof Error) {
@@ -165,12 +181,12 @@ function loadBackground(routes) {
     return { ok: status >= 200 && status < 300, status, json: async () => body };
   };
   const context = {
-    chrome, fetch, console, URL, Blob, FormData, atob, setTimeout: (fn) => setTimeout(fn, 0), crypto: { randomUUID: () => "batch-1" },
+    chrome, fetch, console, URL, Blob, FormData, atob, btoa, setTimeout: (fn) => setTimeout(fn, 0), crypto: { randomUUID: () => "batch-1" },
     importScripts() {}
   };
   vm.createContext(context);
-  vm.runInContext(read("src/collect.js") + read("src/ui.js") + read("background.js"), context);
-  return { context, toasts, requests };
+  vm.runInContext(read("src/i18n.js") + read("src/collect.js") + read("src/ui.js") + read("background.js"), context);
+  return { context, toasts, requests, injected, listeners };
 }
 
 async function testSaveUsesJobsAndPolls() {
@@ -269,9 +285,69 @@ async function testUploadSendsFile() {
   assert.deepStrictEqual(plain(toasts.at(-1)), { text: "savedOne", tone: "success" });
 }
 
+// 设置里选了日文：不管浏览器是什么语言，提示都用日文，占位符照常替换。
+// 帖子上的「保存到 Momento」按钮：后台按整帖去取，取到的交给 Momento；按钮文字跟设置里的语言走。
+async function testPostButton() {
+  const zh = JSON.parse(read("_locales/zh_CN/messages.json"));
+  const { context, toasts, requests, injected, listeners } = loadBackground((url, options) => {
+    if (url.endsWith("/api/v1/status")) {
+      return { body: { ok: true, capabilities: { jobs: true } } };
+    }
+    if (url.endsWith("/api/v1/import") && options.method === "POST") {
+      return { status: 202, body: { ok: true, jobId: `job-${JSON.parse(options.body).index}` } };
+    }
+    return { body: { ok: true, job: { state: "done" } } };
+  }, { language: "zh_CN" }, {
+    momentoReadXiaohongshuNote: () => ({ title: "笔记", images: [], video: null }),
+    momentoCollect: (args) => ({ items: [{ url: "https://a/1.jpg", kind: "image" }, { url: "https://a/2.jpg", kind: "image" }], pageUrl: "https://www.xiaohongshu.com/explore/1" })
+  });
+  await vm.runInContext("languageReady", context);
+  const sender = { id: "self", tab: { id: 3, url: "https://www.xiaohongshu.com/explore/1" }, frameId: 0, url: "https://www.xiaohongshu.com/explore/1" };
+
+  let text;
+  assert.strictEqual(listeners.message({ type: "momento:post-button-text" }, sender, (value) => (text = value)), true);
+  for (let i = 0; i < 20 && !text; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  assert.deepStrictEqual(plain({ ...text, icon: undefined }), { label: zh.menuSave.message, title: zh.postButtonTitle.message });
+  assert.strictEqual(text.icon, `data:image/png;base64,${fs.readFileSync(path.join(rootDir, "icons/icon-128.png")).toString("base64")}`, "按钮用扩展自带的 Momento 图标");
+
+  listeners.message({ type: "momento:save-post" }, sender, () => {});
+  for (let i = 0; i < 20 && !toasts.some((toast) => toast.tone === "success"); i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  const collect = injected.find((call) => call.name === "momentoCollect");
+  assert.strictEqual(collect.args[0].post, true, "按钮要存整帖");
+  assert.deepStrictEqual(injected.find((call) => call.name === "momentoReadXiaohongshuNote").world, "MAIN");
+  assert.strictEqual(requests.filter((r) => r.options.method === "POST").length, 2);
+  assert.deepStrictEqual(plain(toasts.at(-1)), { text: zh.savedMany.message.replace("$1", "2"), tone: "success" });
+
+  // 别的扩展或网页发来的不理。
+  assert.strictEqual(listeners.message({ type: "momento:save-post" }, { ...sender, id: "other" }, () => {}), false);
+}
+
+async function testChosenLanguage() {
+  const ja = JSON.parse(read("_locales/ja/messages.json"));
+  const { context, toasts } = loadBackground((url) => {
+    if (url.endsWith("/api/v1/status")) {
+      return { body: { ok: true, capabilities: { jobs: true } } };
+    }
+    return { status: 400, body: { ok: false, code: "bad_request", error: "bad url" } };
+  }, { language: "ja" });
+  await vm.runInContext("languageReady", context);
+  await context.saveItems(1, 0, [{ url: "https://a/1.jpg" }, { url: "https://a/2.jpg" }], {});
+  const why = ja.errGeneric.message.replace("$1", "bad url");
+  assert.strictEqual(toasts.at(-1).text, ja.failedMany.message.replace("$1", "2").replace("$2", why));
+
+  const auto = loadBackground(() => new Error("down"), { language: "auto" });
+  await vm.runInContext("languageReady", auto.context);
+  await auto.context.saveItems(1, 0, [{ url: "https://a/1.jpg" }], {});
+  assert.strictEqual(auto.toasts.at(-1).text, "errNotRunning");
+}
+
 function testPackageScriptShipsRuntimeFiles() {
   const script = read("scripts/package-extension.sh");
-  for (const file of ["manifest.json", "background.js", "src", "_locales", "icons"]) {
+  for (const file of ["manifest.json", "background.js", "options.html", "src", "_locales", "icons"]) {
     assert.ok(script.includes(file), `打包缺 ${file}`);
   }
   assert.ok(!/\btest\b/.test(script.split("zip -qr")[1] || ""), "测试不该打进包");
@@ -302,6 +378,8 @@ async function run() {
   await testSaveReportsReasons();
   await testLegacyMomento();
   await testUploadSendsFile();
+  await testChosenLanguage();
+  await testPostButton();
   testPackageScriptShipsRuntimeFiles();
   testPrepareReleaseScriptPublishesGitHubRelease();
   console.log("All tests passed");

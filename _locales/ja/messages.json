@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "Momento Image Saver"
+    "message": "Momento"
   },
   "extDescription": {
     "message": "ウェブページの画像や動画を、右クリックでこのパソコンの Momento に保存します。"
@@ -133,5 +133,44 @@
   },
   "skippedStreams": {
     "message": "分割配信の動画 $1 件は保存できませんでした"
+  },
+  "optionsTitle": {
+    "message": "設定"
+  },
+  "optionsLanguage": {
+    "message": "言語"
+  },
+  "optionsLanguageAuto": {
+    "message": "ブラウザに合わせる"
+  },
+  "optionsChecking": {
+    "message": "Momento を確認中…"
+  },
+  "optionsConnected": {
+    "message": "Momento $1 に接続済み"
+  },
+  "optionsUnreachable": {
+    "message": "Momento に接続できません"
+  },
+  "optionsUnreachableHint": {
+    "message": "Momento を開き、設定の「ブラウザ機能拡張」で「ブラウザからの読み込みを許可」をオンにしてください。"
+  },
+  "optionsRejected": {
+    "message": "Momento がリクエストを拒否しました：$1"
+  },
+  "optionsRecheck": {
+    "message": "再確認"
+  },
+  "optionsStorageFailed": {
+    "message": "設定を読み書きできません：$1"
+  },
+  "langCode": {
+    "message": "ja"
+  },
+  "optionsNotMomento": {
+    "message": "ポート47641はほかのアプリで使用中です"
+  },
+  "postButtonTitle": {
+    "message": "この投稿をすべて Momento に保存"
   }
 }
