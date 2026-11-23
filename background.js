@@ -228,7 +228,7 @@ async function showToast(tabId, text, tone) {
   if (tone === "progress") {
     return;
   }
-  await chrome.action.setBadgeBackgroundColor({ tabId, color: tone === "error" ? "#D9483B" : "#6553F0" });
+  await chrome.action.setBadgeBackgroundColor({ tabId, color: tone === "error" ? "#B91C1C" : "#1069DA" });
   await chrome.action.setBadgeText({ tabId, text: tone === "error" ? "!" : "✓" });
   await chrome.action.setTitle({ tabId, title: text });
   setTimeout(() => {

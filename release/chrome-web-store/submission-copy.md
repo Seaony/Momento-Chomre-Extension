@@ -1,6 +1,6 @@
 # Momento 浏览器扩展：Chrome 应用商店上架文案
 
-更新：2026-11-15，按 0.2.0 的实际功能核对过。
+更新：2026-11-23，按 0.2.0 的实际功能核对过。
 
 官方说明（填表前再对一遍，政策会改）：
 - Chrome Web Store Program Policies: https://developer.chrome.com/docs/webstore/program-policies
@@ -36,6 +36,32 @@
 
 扩展只把你选中的内容交给本机的 Momento，不连任何外部服务器，没有广告、统计或账号。
 
+### 详细说明（英文，默认语言）
+
+扩展的默认语言是英文（`default_locale: en`），商店后台默认语言那一栏填这段；再在语言里加「中文（简体）」，填上面的中文版。简短说明商店直接取扩展里的 `extDescription`，不用另填。
+
+```text
+This is the browser side of Momento. When you find an image worth keeping, right-click it and choose "Save to Momento". No downloading and dragging it in later. Momento needs to be open on your computer.
+
+Save one image or video: right-click an image, a video or an image link and choose "Save to Momento". The extension looks for the largest version it can find: the biggest size in srcset, the original address in the page's data, and original-size rules for sites like Zhihu, Douban, Lofter, Bilibili, Unsplash, Pexels, ArtStation and Flickr. Instagram and Xiaohongshu cover their images with a transparent layer, so the extension uses the spot you right-clicked to find the image underneath.
+
+Save a whole post: on Xiaohongshu, Instagram, Pixiv, Weibo, X, Pinterest, Behance, Dribbble, Zcool, Huaban and ArtStation, right-click a post and choose "Save Entire Post to Momento". Images, Live Photos and mp4 videos are saved together. Xiaohongshu notes (under the date) and Instagram posts (next to the bookmark) also get a Momento button that saves the whole post in one click.
+
+Save many at once: click the toolbar icon to see every image on the page. Filter by size and format, Shift-click to select a range, and save them to Momento in one go.
+
+Screenshot: right-click an empty spot on the page and choose "Save Screenshot of Visible Area". What you see is saved as a PNG.
+
+Each saved image keeps the address of the page it came from, so you can open the source again from Momento.
+
+Limits:
+- Nothing can be saved while Momento is closed. The extension tells you when that happens.
+- X videos are saved as the highest-quality mp4. Streamed videos (Bilibili, Douyin, live replays) can't be saved, and the extension says so.
+- Images that need a login to view sometimes can't be downloaded by Momento.
+- Browser pages and the Chrome Web Store don't allow screenshots.
+
+The extension only hands what you pick to Momento on your own computer. It doesn't talk to any outside server, and it has no ads, analytics or accounts.
+```
+
 ### 分类
 
 Productivity（效率）
@@ -46,13 +72,13 @@ Productivity（效率）
 
 中文（简体）/ zh_CN。扩展界面另有英文和日文。
 
-### 主页网址（待填）
+### 主页网址
 
-`https://<your-domain>/momento-image-saver`
+`https://momento.mameya.app`
 
-### 支持网址（待填）
+### 支持网址
 
-`https://<your-domain>/momento-image-saver/support`
+`https://github.com/Seaony/Momento-Chomre-Extension/issues`
 
 ## 隐私
 
@@ -90,6 +116,9 @@ Productivity（效率）
 
 ### 数据使用声明
 
+后台「数据使用」勾选：勾「网站内容」（Website content：用户选的图片、视频、截图）和「网络历史记录」（Web history：来源网页的地址和标题）。官方要求本机处理的数据也要声明，宁可多报不少报；其他类别都不勾。下面三条承诺（不出售、不用于无关用途、不用于信用评估）全部勾上。
+
+
 #### 扩展会处理的数据
 
 - 用户选中保存的图片或视频地址。
@@ -122,17 +151,17 @@ Productivity（效率）
 - 不与第三方共享用户数据。
 - 不把数据用于广告、画像、信用评估或保存图片以外的用途。
 
-## 隐私政策（英文，发布到支持网址）
+## 隐私政策（英文，发布到 `https://momento.mameya.app/privacy/`）
 
 ### Momento Chrome Extension Privacy Policy
 
-Last updated: 2026-11-15
+Last updated: 2026-11-23
 
 The Momento Chrome extension saves images and videos from web pages into the Momento app running on your own computer.
 
 #### What the extension does
 
-The extension only acts when you choose one of its actions: Save to Momento, Save Entire Post to Momento, Save Images on This Page, or Save Screenshot of Visible Area. It then sends what you chose to the Momento app on the same computer through its local endpoint:
+The extension only acts when you choose one of its actions: Save to Momento, Save Entire Post to Momento, Save Images on This Page, Save Screenshot of Visible Area, or the Momento button it adds to Instagram and Xiaohongshu posts. It then sends what you chose to the Momento app on the same computer through its local endpoint:
 
 `http://127.0.0.1:47641/api/v1/`
 
@@ -147,7 +176,7 @@ Momento downloads the files on your computer and adds them to your local library
 
 #### What we do not collect
 
-The extension does not collect your name, email address, account identifiers, phone number, payment, health, financial or authentication information, or location. It does not collect browsing history, and it does not read messages, forms or passwords on web pages. It has no analytics, advertising SDKs, tracking cookies or remote telemetry.
+The extension does not collect your name, email address, account identifiers, phone number, payment, health, financial or authentication information, or location. It does not collect your browsing history: the only page address it handles is the one you save from, and that goes only to Momento. It does not read messages, forms or passwords on web pages. It has no analytics, advertising SDKs, tracking cookies or remote telemetry.
 
 #### Nothing leaves your computer
 
@@ -163,9 +192,9 @@ If Momento is not running, the extension cannot save anything and tells you so.
 
 #### Contact
 
-For privacy or support questions:
+For privacy or support questions, open an issue at:
 
-`<support-email-or-support-url>`
+`https://github.com/Seaony/Momento-Chomre-Extension/issues`
 
 ## 给审核员的说明（英文）
 

@@ -17,21 +17,21 @@ function momentoToast(args) {
     const root = host.attachShadow({ mode: "open" });
     root.innerHTML = `<style>
       .toast { display: flex; align-items: center; gap: 10px; max-width: 360px; padding: 10px 14px 10px 12px;
-        border-radius: 10px; background: #FFFFFF; color: #1C1A29; border: 1px solid rgba(101, 83, 240, 0.14);
-        box-shadow: 0 8px 28px rgba(28, 26, 41, 0.16); font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans", sans-serif;
+        border-radius: 10px; background: #FFFFFF; color: #17232F; border: 1px solid #DFDFDF;
+        box-shadow: 0 8px 28px rgba(23, 35, 47, 0.16); font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans", sans-serif;
         opacity: 0; transform: translateY(-6px); transition: opacity .18s ease, transform .18s ease; }
       .toast.show { opacity: 1; transform: none; }
       .icon { flex: none; width: 18px; height: 18px; display: grid; place-items: center; }
       .icon svg { width: 18px; height: 18px; }
       .info .icon { display: none; }
-      .success .icon { color: #6553F0; }
-      .error .icon { color: #D9483B; }
-      .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(101, 83, 240, 0.22); border-top-color: #6553F0; animation: spin .8s linear infinite; }
+      .success .icon { color: #1069DA; }
+      .error .icon { color: #B91C1C; }
+      .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(16, 105, 218, 0.22); border-top-color: #1069DA; animation: spin .8s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
       @media (prefers-color-scheme: dark) {
-        .toast { background: #1E1C26; color: #F2F0FA; border-color: rgba(255, 255, 255, 0.08); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); }
-        .success .icon { color: #9A8CFF; }
-        .error .icon { color: #FF7A6E; }
+        .toast { background: #1B1F23; color: #EEF1F5; border-color: #2B3138; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); }
+        .success .icon { color: #5A98F3; }
+        .error .icon { color: #FF9B9B; }
       }
     </style><div class="toast" role="status" aria-live="polite"><span class="icon"></span><span class="text"></span></div>`;
     (document.body || document.documentElement).appendChild(host);
@@ -70,21 +70,21 @@ function momentoPanel(args) {
   root.innerHTML = `<style>
     :host { color-scheme: light dark; }
     * { box-sizing: border-box; }
-    .backdrop { position: fixed; inset: 0; background: rgba(20, 18, 32, 0.42); display: grid; place-items: center;
+    .backdrop { position: fixed; inset: 0; background: rgba(23, 35, 47, 0.25); display: grid; place-items: center;
       font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans", sans-serif; }
     .sheet { width: min(980px, 94vw); height: min(720px, 90vh); display: flex; flex-direction: column; border-radius: 14px;
-      background: #FCFBFF; color: #1C1A29; box-shadow: 0 24px 64px rgba(20, 18, 32, 0.28); overflow: hidden; }
+      background: #FFFFFF; color: #17232F; box-shadow: 0 24px 64px rgba(23, 35, 47, 0.22); overflow: hidden; }
     header { display: flex; align-items: center; gap: 12px; padding: 14px 16px 12px 20px; }
     h1 { font-size: 15px; font-weight: 600; margin: 0; }
-    .count { color: #77738A; font-variant-numeric: tabular-nums; }
+    .count { color: #4D6073; font-variant-numeric: tabular-nums; }
     .spacer { flex: 1; }
     .bar { display: flex; align-items: center; gap: 8px; padding: 0 20px 12px; flex-wrap: wrap; }
-    button, select { font: inherit; color: inherit; height: 28px; border-radius: 8px; border: 1px solid rgba(101, 83, 240, 0.14);
-      background: #F4F2FC; padding: 0 10px; cursor: pointer; }
-    button:hover, select:hover { background: #ECE9FA; }
-    button:focus-visible, select:focus-visible { outline: 2px solid #6553F0; outline-offset: 1px; }
-    .cell:focus-visible { outline: 2px solid #9D99AE; outline-offset: 2px; }
-    .chip[aria-pressed="false"] { background: transparent; color: #77738A; }
+    button, select { font: inherit; color: inherit; height: 28px; border-radius: 8px; border: 1px solid transparent;
+      background: #E9E9E9; padding: 0 10px; cursor: pointer; }
+    button:hover, select:hover { background: #E3E3E3; }
+    button:focus-visible, select:focus-visible { outline: 2px solid #0462D3; outline-offset: 1px; }
+    .cell:focus-visible { outline: 2px solid #56697D; outline-offset: 2px; }
+    .chip[aria-pressed="false"] { background: transparent; border-color: #DFDFDF; color: #4D6073; }
     .formats { display: flex; gap: 8px; }
     .chip { text-transform: uppercase; font-size: 11px; letter-spacing: .02em; }
     .icon-button { width: 28px; padding: 0; display: grid; place-items: center; background: transparent; border-color: transparent; }
@@ -92,33 +92,38 @@ function momentoPanel(args) {
     /* 格子带 overflow: hidden，行高不会按正方形自动撑开；不写 max-content 的话图一多，行就被压扁、图叠在一起。 */
     .grid { flex: 1; overflow: auto; padding: 4px 20px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
       gap: 12px; align-content: start; grid-auto-rows: max-content; }
-    .cell { position: relative; border-radius: 10px; background: #F1EFF8; aspect-ratio: 1; overflow: hidden; cursor: pointer;
+    .cell { position: relative; border-radius: 10px; background: #E7E7E7; aspect-ratio: 1; overflow: hidden; cursor: pointer;
       border: 2px solid transparent; }
     .cell img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
     .cell.video::after { content: ""; position: absolute; inset: 0; margin: auto; width: 0; height: 0; border-left: 14px solid rgba(255,255,255,.92);
       border-top: 9px solid transparent; border-bottom: 9px solid transparent; filter: drop-shadow(0 1px 3px rgba(0,0,0,.4)); }
-    .cell[aria-checked="true"] { border-color: #6553F0; }
+    .cell[aria-checked="true"] { border-color: #1069DA; }
     .mark { position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.9);
-      background: rgba(20, 18, 32, 0.24); display: grid; place-items: center; color: #FFFFFF; }
+      background: rgba(0, 0, 0, 0.24); display: grid; place-items: center; color: #FFFFFF; }
     .mark svg { width: 14px; height: 14px; display: none; }
-    .cell[aria-checked="true"] .mark { background: #6553F0; border-color: #6553F0; }
+    .cell[aria-checked="true"] .mark { background: #1069DA; border-color: #1069DA; }
     .cell[aria-checked="true"] .mark svg { display: block; }
     .meta { position: absolute; left: 6px; right: 6px; bottom: 6px; display: flex; gap: 4px; justify-content: flex-end; }
-    .meta span { padding: 1px 6px; border-radius: 6px; background: rgba(20, 18, 32, 0.62); color: #FFFFFF; font-size: 11px; font-variant-numeric: tabular-nums; }
-    .empty { grid-column: 1 / -1; padding: 80px 0; text-align: center; color: #77738A; }
-    footer { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid rgba(101, 83, 240, 0.10); }
-    .primary { background: #6553F0; border-color: #6553F0; color: #FFFFFF; padding: 0 14px; }
-    .primary:hover { background: #6E5CF4; }
+    .meta span { padding: 1px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.6); color: #FFFFFF; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .empty { grid-column: 1 / -1; padding: 80px 0; text-align: center; color: #4D6073; }
+    footer { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid #DFDFDF; }
+    .primary { background: #1069DA; border-color: #1069DA; color: #FFFFFF; padding: 0 14px; }
+    .primary:hover { background: #1C71E2; }
     .primary:disabled { opacity: .45; cursor: default; }
     @media (prefers-color-scheme: dark) {
-      .sheet { background: #16151C; color: #F2F0FA; border: 1px solid rgba(255, 255, 255, 0.08); }
-      .count, .empty, .chip[aria-pressed="false"] { color: #9D99AE; }
-      button, select { background: #24222D; border-color: rgba(255, 255, 255, 0.08); }
-      button:hover, select:hover { background: #2C2A37; }
+      .backdrop { background: rgba(0, 0, 0, 0.55); }
+      .sheet { background: #1B1F23; color: #EEF1F5; border: 1px solid #2B3138; }
+      .count, .empty, .chip[aria-pressed="false"] { color: #A6AFB9; }
+      button, select { background: #161A1D; }
+      button:hover, select:hover { background: #21262A; }
+      button:focus-visible, select:focus-visible { outline-color: #5A98F3; }
+      .cell:focus-visible { outline-color: #848D96; }
+      .chip[aria-pressed="false"] { background: transparent; border-color: #2B3138; }
       .icon-button { background: transparent; border-color: transparent; }
-      .cell { background: #201F28; }
-      footer { border-top-color: rgba(255, 255, 255, 0.06); }
-      .primary { background: #6553F0; border-color: #6553F0; }
+      .cell { background: #161A1D; }
+      footer { border-top-color: #2B3138; }
+      .primary { background: #1069DA; border-color: #1069DA; }
+      .primary:hover { background: #1C71E2; }
     }
   </style>
   <div class="backdrop">
@@ -215,7 +220,7 @@ function momentoPanel(args) {
         item.selected = next;
         anchor = item;
         render();
-        // 只有键盘操作才把焦点放回这一格，鼠标点完不留焦点框，免得和「选中」的紫框混淆。
+        // 只有键盘操作才把焦点放回这一格，鼠标点完不留焦点框，免得和「选中」的蓝框混淆。
         if (event.type === "keydown") {
           root.querySelectorAll(".cell")[shown.indexOf(item)]?.focus();
         }
